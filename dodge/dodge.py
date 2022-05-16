@@ -10,6 +10,9 @@ pygame.init()  # To initialize pygame
 WIDTH = 800  # Global variables
 HEIGHT = 600
 
+# 키보드 조작을 더 부드럽게
+pygame.key.set_repeat(30, 30)
+
 # Defining the color for player and enemy
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
@@ -18,11 +21,11 @@ GREEN = (0, 255, 0)
 BACKGROUND_COLOR = (0, 0, 0)  # Setting the background color
 
 # Defining player position and player block size
-PLAYER_SIZE = 50  # Its the size of the block
+PLAYER_SIZE = 10  # Its the size of the block
 PLAYER_POS = [WIDTH/2, (HEIGHT-(2*PLAYER_SIZE))]  # Its the x and y-axis position
 
 # Defining an enemy
-ENEMY_SIZE = 50
+ENEMY_SIZE = 10
 X_POS = random.randint(0, WIDTH - ENEMY_SIZE)  # Its the starting position of the enemy block
 ENEMY_POS = [X_POS, 0]  # Setting the enemy position
 ENEMY_LIST = [ENEMY_POS]  # Defining an enemy list to contain multiple enemies
@@ -62,7 +65,7 @@ def drop_enemies(ENEMY_LIST):
     delay = random.random()  # It generates a random value betwee 0 and 1
     if len(ENEMY_LIST) < 10 and delay < 0.1:  # When the no. of elements inside the list is less than 10
         x_pos = random.randint(0, WIDTH-ENEMY_SIZE)  # Assigning the x-coordinate to the new enemy randomly.
-        y_pos = 0
+        y_pos = random.randint(0, HEIGHT-ENEMY_SIZE)
         ENEMY_LIST.append([x_pos, y_pos])  # It appends new enemy coordinates to the enemy list
 
 def update_enemy_positions(ENEMY_LIST, score):
