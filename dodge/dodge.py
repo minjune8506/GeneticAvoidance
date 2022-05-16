@@ -18,19 +18,21 @@ RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 YELLOW = (255,255,0)
 GREEN = (0, 255, 0)
-BACKGROUND_COLOR = (0, 0, 0)  # Setting the background color
+BACKGROUND_COLOR = (0, 0, 0)  # Setting the background color, Black
 
 # Defining player position and player block size
-PLAYER_SIZE = 10  # Its the size of the block
-PLAYER_POS = [WIDTH/2, (HEIGHT-(2*PLAYER_SIZE))]  # Its the x and y-axis position
+PLAYER_SIZE = 15  # Its the size of the block
+PLAYER_POS = [WIDTH/2, HEIGHT/2]  # Its the x and y-axis position
 
 # Defining an enemy
 ENEMY_SIZE = 10
-X_POS = random.randint(0, WIDTH - ENEMY_SIZE)  # Its the starting position of the enemy block
-ENEMY_POS = [X_POS, 0]  # Setting the enemy position
+X_POS = random.randint(0, WIDTH)  # Its the starting position of the enemy block
+Y_POS = random.randint(0, HEIGHT)
+
+ENEMY_POS = [X_POS, Y_POS]  # Setting the enemy position
 ENEMY_LIST = [ENEMY_POS]  # Defining an enemy list to contain multiple enemies
 
-SPEED = 10  # Defining the speed at which the block falls
+SPEED = random.randint(0, 10)  # Defining the speed at which the block falls
 
 # Creating a screen
 screen = pygame.display.set_mode((WIDTH, HEIGHT))  # We have a screen of WIDTH 800 and HEIGHT 600
@@ -47,58 +49,80 @@ endFont = pygame.font.SysFont("comicsansms", 40, True, False)
 def set_level(score, SPEED):
     if score < 20:
         SPEED = 10
-    elif score < 40:
+    elif score < 50:
         SPEED = 12
-    elif score < 60:
+    elif score < 100:
         SPEED = 15
     else:
         SPEED = 20
 
     return SPEED
 
-def draw_enemies(enemy_list):
-    for enemy_pos in enemy_list:
-        # Drawing the enemy rectangle
-        pygame.draw.rect(screen, BLUE, (enemy_pos[0], enemy_pos[1], ENEMY_SIZE, ENEMY_SIZE))
+class Enemy:   
+    def draw_enemies(enemy_list):
+        for enemy_pos in enemy_list:
+            # Drawing the enemy rectangle
+            pygame.draw.rect(screen, BLUE, (enemy_pos[0], enemy_pos[1], ENEMY_SIZE, ENEMY_SIZE))
 
-def drop_enemies(ENEMY_LIST):
-    delay = random.random()  # It generates a random value betwee 0 and 1
-    if len(ENEMY_LIST) < 10 and delay < 0.1:  # When the no. of elements inside the list is less than 10
-        x_pos = random.randint(0, WIDTH-ENEMY_SIZE)  # Assigning the x-coordinate to the new enemy randomly.
-        y_pos = random.randint(0, HEIGHT-ENEMY_SIZE)
-        ENEMY_LIST.append([x_pos, y_pos])  # It appends new enemy coordinates to the enemy list
+    def drop_enemies(ENEMY_LIST):
+        delay = random.random()  # It generates a random value betwee 0 and 1
+        if len(ENEMY_LIST) < 10 and delay < 0.1:  # When the no. of elements inside the list is less than 10
+            #남쪽
+            x_pos = random.randint(0, WIDTH)  # Assigning the x-coordinate to the new enemy randomly.
+            y_pos = 600
+            ENEMY_LIST.append([x_pos, y_pos])  # It appends new enemy coordinates to the enemy list
+            #북쪽
+            x_pos = random.randint(0, WIDTH)  # Assigning the x-coordinate to the new enemy randomly.
+            y_pos = 0
+            ENEMY_LIST.append([x_pos, y_pos])  # It appends new enemy coordinates to the enemy list
+            #서쪽
+            x_pos = 0  # Assigning the x-coordinate to the new enemy randomly.
+            y_pos = random.randint(0, HEIGHT)
+            ENEMY_LIST.append([x_pos, y_pos])  # It appends new enemy coordinates to the enemy list
+            #동쪽
+            x_pos = 800  # Assigning the x-coordinate to the new enemy randomly.
+            y_pos = random.randint(0, HEIGHT)
+            ENEMY_LIST.append([x_pos, y_pos])  # It appends new enemy coordinates to the enemy list
 
-def update_enemy_positions(ENEMY_LIST, score):
-    for idx, ENEMY_POS in enumerate(ENEMY_LIST):  # Using the enumerate function
+    def update_enemy_positions(ENEMY_LIST, score):
+        for idx, ENEMY_POS in enumerate(ENEMY_LIST):  # Using the enumerate function
+            # Updating the position of enemy and making the enemy block fall
+            if ENEMY_POS[1] in range(0, HEIGHT):  # It allows the enemy block to move down, Checks if the enemy is onscreen
+                #print("pos [0] : "+str(ENEMY_POS[0])) x좌표
+                #print("pos [1] : "+str(ENEMY_POS[1])) y좌표
+                # 이 부분 다시 하기
+                if ENEMY_POS[1] == 0:
+                    ENEMY_POS[1] += SPEED  # It increments the value of height
+                elif ENEMY_POS[1] == 600:
+                    ENEMY_POS[1] -= SPEED
+            elif ENEMY_POS[0] in range(0, WIDTH):
+                if ENEMY_POS[0] == 0:
+                    ENEMY_POS[0] += SPEED
+                elif ENEMY_POS[0] == 800:
+                    ENEMY_POS[0] -= SPEED 
+            else:
+                ENEMY_LIST.pop(idx)  # It pops out the enemy from the enemy_list
+                score +=1  # Incrementing the score each time we pass it
 
-        # Updating the position of enemy and making the enemy block fall
-        if ENEMY_POS[1] in range(0, HEIGHT):  # It allows the enemy block to move down, Checks if the enemy is onscreen
-            ENEMY_POS[1] += SPEED  # It increments the value of height
+        return score  # It returns the score
 
-        else:
-            ENEMY_LIST.pop(idx)  # It pops out the enemy from the enemy_list
-            score +=1  # Incrementing the score each time we pass it
-
-    return score  # It returns the score
-
-def collision_check(enemy_list, player_pos):   # Causes the game to end if it returns True
-    for enemy_pos in enemy_list:  # It iterates through each enemy_pos inside enemy_list
-        if detect_collision(player_pos, enemy_pos):  # returns True if collision is detected for any enemy_pos
-            return True
-    return False
-
-
-def detect_collision(PLAYER_POS, ENEMY_POS):
-        p_x = PLAYER_POS[0]
-        p_y = PLAYER_POS[1]
-
-        e_x = ENEMY_POS[0]
-        e_y = ENEMY_POS[1]
-
-        if (e_x >= p_x and e_x < (p_x + PLAYER_SIZE)) or (p_x >= e_x and p_x < (e_x + ENEMY_SIZE)):  # Checks to see the x-overlap
-            if (e_y >= p_y and e_y < (p_y + PLAYER_SIZE)) or (p_y >= e_y and p_y < (e_y + ENEMY_SIZE)):  # Checks to see the y-overlap
+    def collision_check(enemy_list, player_pos):   # Causes the game to end if it returns True
+        for enemy_pos in enemy_list:  # It iterates through each enemy_pos inside enemy_list
+            if Enemy.detect_collision(player_pos, enemy_pos):  # returns True if collision is detected for any enemy_pos
                 return True
-        return False  # False is returned only when the above if statements do not get run.
+        return False
+
+    def detect_collision(PLAYER_POS, ENEMY_POS):
+            p_x = PLAYER_POS[0]
+            p_y = PLAYER_POS[1]
+
+            e_x = ENEMY_POS[0]
+            e_y = ENEMY_POS[1]
+
+            if (e_x >= p_x and e_x < (p_x + PLAYER_SIZE)) or (p_x >= e_x and p_x < (e_x + ENEMY_SIZE)):  # Checks to see the x-overlap
+                if (e_y >= p_y and e_y < (p_y + PLAYER_SIZE)) or (p_y >= e_y and p_y < (e_y + ENEMY_SIZE)):  # Checks to see the y-overlap
+                    return True
+            return False  # False is returned only when the above if statements do not get run.
 
 def limit(PLAYER_POS):  # Function to restrict the movement of the player
     p_x = PLAYER_POS[0]
@@ -172,8 +196,8 @@ while not game_over :  # It keeps running until we hit the game_over condition
 
     screen.fill(BACKGROUND_COLOR)  # It takes in an RGB value and updates the screen
 
-    drop_enemies(ENEMY_LIST)   # Calling the drop enemies function
-    score = update_enemy_positions(ENEMY_LIST, score)  # It updates the enemy position and stores the score value
+    Enemy.drop_enemies(ENEMY_LIST)   # Calling the drop enemies function
+    score = Enemy.update_enemy_positions(ENEMY_LIST, score)  # It updates the enemy position and stores the score value
     # print(score)  # Prints score to the console
     SPEED = set_level(score, SPEED)
 
@@ -183,7 +207,7 @@ while not game_over :  # It keeps running until we hit the game_over condition
     label1 = myFont.render(text, 1, YELLOW)  #
     screen.blit(label1,  (WIDTH-200, HEIGHT-50))# Attaching our label to screen
 
-    if collision_check(ENEMY_LIST, PLAYER_POS):   # It will enter the loop only when the function returns True
+    if Enemy.collision_check(ENEMY_LIST, PLAYER_POS):   # It will enter the loop only when the function returns True
         label2 = endFont.render(final_score, 1, RED)  # The font will be printed in "red"
         label3 = endFont.render(msg, 1, (0, 255, 0))
         screen.blit(label2, (250, 250))  # It updates text to the specific part(position) of the screen
@@ -192,7 +216,7 @@ while not game_over :  # It keeps running until we hit the game_over condition
         game_over = True
         # break  # It breaks out of the loop without showing the overlap
 
-    draw_enemies(ENEMY_LIST)   # Calling the draw enemy function
+    Enemy.draw_enemies(ENEMY_LIST)   # Calling the draw enemy function
 
 
     # Drawing the player rectangle
