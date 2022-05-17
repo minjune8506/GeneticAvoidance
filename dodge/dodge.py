@@ -11,7 +11,7 @@ WIDTH = 800  # Global variables
 HEIGHT = 600
 
 # 키보드 조작을 더 부드럽게
-pygame.key.set_repeat(30, 30)
+pygame.key.set_repeat(5,60)
 
 # Defining the color for player and enemy
 RED = (255, 0, 0)
@@ -29,10 +29,8 @@ ENEMY_SIZE = 10
 X_POS = random.randint(0, WIDTH)  # Its the starting position of the enemy block
 Y_POS = random.randint(0, HEIGHT) 
 
-# ENEMY_POS = [X_POS, Y_POS, X_SPEED, Y_SPEED]  # Setting the enemy position
 ENEMY_LIST = []  # Defining an enemy list to contain multiple enemies
-
-SPEED = random.randint(0, 10)  # Defining the speed at which the block falls
+ENEMY_COUNT = 10
 
 # Creating a screen
 screen = pygame.display.set_mode((WIDTH, HEIGHT))  # We have a screen of WIDTH 800 and HEIGHT 600
@@ -46,17 +44,17 @@ clock = pygame.time.Clock()  # It defines a clock
 myFont = pygame.font.SysFont("monospace", 35)  # Defining the font in pygame (Monospace is font and 35 is in pixels)
 endFont = pygame.font.SysFont("comicsansms", 40, True, False)
 
-def set_level(score, SPEED):
+def set_level(score, ENEMY_COUNT):
     if score < 20:
-        SPEED = 10
+        ENEMY_COUNT = 30
     elif score < 50:
-        SPEED = 12
+        ENEMY_COUNT = 50
     elif score < 100:
-        SPEED = 15
+        ENEMY_COUNT = 100
     else:
-        SPEED = 20
+        ENEMY_COUNT = 200
 
-    return SPEED
+    return ENEMY_COUNT
 
 class Enemy:   
     def draw_enemies(enemy_list):
@@ -65,49 +63,55 @@ class Enemy:
             pygame.draw.rect(screen, BLUE, (enemy_pos[0], enemy_pos[1], ENEMY_SIZE, ENEMY_SIZE))
 
     def drop_enemies(ENEMY_LIST):
-        delay = random.random()  # It generates a random value betwee 0 and 1
-        if len(ENEMY_LIST) < 10 and delay < 0.1:  # When the no. of elements inside the list is less than 10
-            #남쪽
-            x_pos = random.randint(0, WIDTH)  # Assigning the x-coordinate to the new enemy randomly.
-            y_pos = HEIGHT
-            y_speed = -1
-            x_speed = random.randint(-1, 1)
-            ENEMY_LIST.append([x_pos, y_pos, x_speed, y_speed])  # It appends new enemy coordinates to the enemy list
-            #북쪽
-            x_pos = random.randint(0, WIDTH)  # Assigning the x-coordinate to the new enemy randomly.
-            y_pos = 0
-            y_speed = 1
-            x_speed = random.randint(-1, 1)
-            ENEMY_LIST.append([x_pos, y_pos, x_speed, y_speed])  # It appends new enemy coordinates to the enemy list
-            #서쪽
-            x_pos = 0  # Assigning the x-coordinate to the new enemy randomly.
-            y_pos = random.randint(0, HEIGHT)
-            y_speed = random.randint(-1, 1)
-            x_speed = 1
-            ENEMY_LIST.append([x_pos, y_pos, x_speed, y_speed])  # It appends new enemy coordinates to the enemy list
-            #동쪽
-            x_pos = WIDTH  # Assigning the x-coordinate to the new enemy randomly.
-            y_pos = random.randint(0, HEIGHT)
-            y_speed = random.randint(-1, 1)
-            x_speed = -1
-            ENEMY_LIST.append([x_pos, y_pos, x_speed, y_speed])  # It appends new enemy coordinates to the enemy list
-
+        randomValue = random.randint(1, 4)  # It generates a random value betwee 0 and 4
+        if len(ENEMY_LIST) < ENEMY_COUNT:  # When the no. of elements inside the list is less than 10
+            if randomValue == 1:
+                #남쪽
+                x_pos = random.randint(0, WIDTH)  # Assigning the x-coordinate to the new enemy randomly.
+                y_pos = HEIGHT
+                y_speed = -1
+                x_speed = random.randint(-1, 1)
+                ENEMY_LIST.append([x_pos, y_pos, x_speed, y_speed])  # It appends new enemy coordinates to the enemy list
+            elif randomValue == 2:
+                #북쪽
+                x_pos = random.randint(0, WIDTH)  # Assigning the x-coordinate to the new enemy randomly.
+                y_pos = 0
+                y_speed = 1
+                x_speed = random.randint(-1, 1)
+                ENEMY_LIST.append([x_pos, y_pos, x_speed, y_speed])  # It appends new enemy coordinates to the enemy list
+            elif randomValue == 3:
+                #서쪽
+                x_pos = 0  # Assigning the x-coordinate to the new enemy randomly.
+                y_pos = random.randint(0, HEIGHT)
+                y_speed = random.randint(-1, 1)
+                x_speed = 1
+                ENEMY_LIST.append([x_pos, y_pos, x_speed, y_speed])  # It appends new enemy coordinates to the enemy list
+            elif randomValue == 4:
+                #동쪽
+                x_pos = WIDTH  # Assigning the x-coordinate to the new enemy randomly.
+                y_pos = random.randint(0, HEIGHT)
+                y_speed = random.randint(-1, 1)
+                x_speed = -1
+                ENEMY_LIST.append([x_pos, y_pos, x_speed, y_speed])  # It appends new enemy coordinates to the enemy list
+        
+                
     def update_enemy_positions(ENEMY_LIST, score):
         for idx, ENEMY_POS in enumerate(ENEMY_LIST):  # Using the enumerate function
             # Updating the position of enemy and making the enemy block fall
             #print("pos [0] : "+str(ENEMY_POS[0])) x좌표
             #print("pos [1] : "+str(ENEMY_POS[1])) y좌표
-            move = False
+            x_move = False
+            y_move = False
             print(ENEMY_POS)
             if 0 <= ENEMY_POS[1] <= HEIGHT :
                 ENEMY_POS[1] += ENEMY_POS[3]  # It increments the value of height
-                move = True
+                y_move = True
                 print("세로축 이동")
             if 0 <= ENEMY_POS[0] <= WIDTH :
                 ENEMY_POS[0] += ENEMY_POS[2]
-                move = True
+                x_move = True
                 print("가로축 이동")
-            if not move:
+            if not x_move or not y_move:
                 ENEMY_LIST.pop(idx)  # It pops out the enemy from the enemy_list
                 score +=1  # Incrementing the score each time we pass it
 
@@ -198,7 +202,6 @@ while not game_over :  # It keeps running until we hit the game_over condition
                 y += PLAYER_SIZE
 
             PLAYER_POS = [x, y]  # We are passing in the new x and y values
-
             PLAYER_POS = limit(PLAYER_POS)  # Calling the limit function
 
     screen.fill(BACKGROUND_COLOR)  # It takes in an RGB value and updates the screen
@@ -206,7 +209,7 @@ while not game_over :  # It keeps running until we hit the game_over condition
     Enemy.drop_enemies(ENEMY_LIST)   # Calling the drop enemies function
     score = Enemy.update_enemy_positions(ENEMY_LIST, score)  # It updates the enemy position and stores the score value
     # print(score)  # Prints score to the console
-    SPEED = set_level(score, SPEED)
+    ENEMY_COUNT = set_level(score, ENEMY_COUNT)
 
     text = "Score:" + str(score)  # Storing our score to "text" variable
     final_score = "Final Score: " + str(score)
