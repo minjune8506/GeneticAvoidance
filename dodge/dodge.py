@@ -27,10 +27,10 @@ PLAYER_POS = [WIDTH/2, HEIGHT/2]  # Its the x and y-axis position
 # Defining an enemy
 ENEMY_SIZE = 10
 X_POS = random.randint(0, WIDTH)  # Its the starting position of the enemy block
-Y_POS = random.randint(0, HEIGHT)
+Y_POS = random.randint(0, HEIGHT) 
 
-ENEMY_POS = [X_POS, Y_POS]  # Setting the enemy position
-ENEMY_LIST = [ENEMY_POS]  # Defining an enemy list to contain multiple enemies
+# ENEMY_POS = [X_POS, Y_POS, X_SPEED, Y_SPEED]  # Setting the enemy position
+ENEMY_LIST = []  # Defining an enemy list to contain multiple enemies
 
 SPEED = random.randint(0, 10)  # Defining the speed at which the block falls
 
@@ -69,38 +69,45 @@ class Enemy:
         if len(ENEMY_LIST) < 10 and delay < 0.1:  # When the no. of elements inside the list is less than 10
             #남쪽
             x_pos = random.randint(0, WIDTH)  # Assigning the x-coordinate to the new enemy randomly.
-            y_pos = 600
-            ENEMY_LIST.append([x_pos, y_pos])  # It appends new enemy coordinates to the enemy list
+            y_pos = HEIGHT
+            y_speed = -1
+            x_speed = random.randint(-1, 1)
+            ENEMY_LIST.append([x_pos, y_pos, x_speed, y_speed])  # It appends new enemy coordinates to the enemy list
             #북쪽
             x_pos = random.randint(0, WIDTH)  # Assigning the x-coordinate to the new enemy randomly.
             y_pos = 0
-            ENEMY_LIST.append([x_pos, y_pos])  # It appends new enemy coordinates to the enemy list
+            y_speed = 1
+            x_speed = random.randint(-1, 1)
+            ENEMY_LIST.append([x_pos, y_pos, x_speed, y_speed])  # It appends new enemy coordinates to the enemy list
             #서쪽
             x_pos = 0  # Assigning the x-coordinate to the new enemy randomly.
             y_pos = random.randint(0, HEIGHT)
-            ENEMY_LIST.append([x_pos, y_pos])  # It appends new enemy coordinates to the enemy list
+            y_speed = random.randint(-1, 1)
+            x_speed = 1
+            ENEMY_LIST.append([x_pos, y_pos, x_speed, y_speed])  # It appends new enemy coordinates to the enemy list
             #동쪽
-            x_pos = 800  # Assigning the x-coordinate to the new enemy randomly.
+            x_pos = WIDTH  # Assigning the x-coordinate to the new enemy randomly.
             y_pos = random.randint(0, HEIGHT)
-            ENEMY_LIST.append([x_pos, y_pos])  # It appends new enemy coordinates to the enemy list
+            y_speed = random.randint(-1, 1)
+            x_speed = -1
+            ENEMY_LIST.append([x_pos, y_pos, x_speed, y_speed])  # It appends new enemy coordinates to the enemy list
 
     def update_enemy_positions(ENEMY_LIST, score):
         for idx, ENEMY_POS in enumerate(ENEMY_LIST):  # Using the enumerate function
             # Updating the position of enemy and making the enemy block fall
-            if ENEMY_POS[1] in range(0, HEIGHT):  # It allows the enemy block to move down, Checks if the enemy is onscreen
-                #print("pos [0] : "+str(ENEMY_POS[0])) x좌표
-                #print("pos [1] : "+str(ENEMY_POS[1])) y좌표
-                # 이 부분 다시 하기
-                if ENEMY_POS[1] == 0:
-                    ENEMY_POS[1] += SPEED  # It increments the value of height
-                elif ENEMY_POS[1] == 600:
-                    ENEMY_POS[1] -= SPEED
-            elif ENEMY_POS[0] in range(0, WIDTH):
-                if ENEMY_POS[0] == 0:
-                    ENEMY_POS[0] += SPEED
-                elif ENEMY_POS[0] == 800:
-                    ENEMY_POS[0] -= SPEED 
-            else:
+            #print("pos [0] : "+str(ENEMY_POS[0])) x좌표
+            #print("pos [1] : "+str(ENEMY_POS[1])) y좌표
+            move = False
+            print(ENEMY_POS)
+            if 0 <= ENEMY_POS[1] <= HEIGHT :
+                ENEMY_POS[1] += ENEMY_POS[3]  # It increments the value of height
+                move = True
+                print("세로축 이동")
+            if 0 <= ENEMY_POS[0] <= WIDTH :
+                ENEMY_POS[0] += ENEMY_POS[2]
+                move = True
+                print("가로축 이동")
+            if not move:
                 ENEMY_LIST.pop(idx)  # It pops out the enemy from the enemy_list
                 score +=1  # Incrementing the score each time we pass it
 
