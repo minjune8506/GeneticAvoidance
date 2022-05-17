@@ -22,13 +22,10 @@ BACKGROUND_COLOR = (0, 0, 0)  # Setting the background color, Black
 
 # Defining player position and player block size
 PLAYER_SIZE = 15  # Its the size of the block
-PLAYER_POS = [WIDTH/2, HEIGHT/2]  # Its the x and y-axis position
+PLAYER_POS = [WIDTH / 2 - PLAYER_SIZE / 2, HEIGHT / 2 - PLAYER_SIZE / 2]  # Its the x and y-axis position
 
 # Defining an enemy
 ENEMY_SIZE = 10
-X_POS = random.randint(0, WIDTH)  # Its the starting position of the enemy block
-Y_POS = random.randint(0, HEIGHT) 
-
 ENEMY_LIST = []  # Defining an enemy list to contain multiple enemies
 ENEMY_COUNT = 10
 
@@ -44,7 +41,7 @@ clock = pygame.time.Clock()  # It defines a clock
 myFont = pygame.font.SysFont("monospace", 35)  # Defining the font in pygame (Monospace is font and 35 is in pixels)
 endFont = pygame.font.SysFont("comicsansms", 40, True, False)
 
-def set_level(score, ENEMY_COUNT):
+def set_level(score, ENEMY_COUNT, ENEMY_LIST):
     if score < 20:
         ENEMY_COUNT = 30
     elif score < 50:
@@ -143,35 +140,29 @@ def limit(PLAYER_POS):  # Function to restrict the movement of the player
         p_x = 0
         p_y = 0
 
-    elif p_x >=750 and p_y <=0:
-        p_x = 750
+    elif p_x >= WIDTH and p_y <=0:
+        p_x = WIDTH - PLAYER_SIZE
         p_y = 0
 
-    elif p_x >=750 and p_y >= 550:
-        p_x = 750
-        p_y = 550
+    elif p_x >= WIDTH and p_y >= HEIGHT:
+        p_x = WIDTH -PLAYER_SIZE
+        p_y = HEIGHT -PLAYER_SIZE
 
-    elif p_x <= 0 and p_y >= 550:
+    elif p_x <= 0 and p_y >= HEIGHT:
         p_x = 0
-        p_y = 550
+        p_y = HEIGHT -PLAYER_SIZE
 
-    elif p_x >= 750  :
-        p_x = 750
+    elif p_x >= WIDTH:
+        p_x = WIDTH -PLAYER_SIZE
 
-    elif p_x <= 0 :
+    elif p_x <= 0:
         p_x = 0
 
-    elif p_y >=550:
-        p_y = 550
+    elif p_y >= HEIGHT:
+        p_y = HEIGHT -PLAYER_SIZE
 
     elif p_y <= 0:
         p_y = 0
-
-    # elif p_x >= 100:
-    #     p_x = 100
-    #
-    # elif p_y >= 50:
-    #     p_y = 50
 
     PLAYER_POS = [p_x, p_y]
 
@@ -209,7 +200,7 @@ while not game_over :  # It keeps running until we hit the game_over condition
     Enemy.drop_enemies(ENEMY_LIST)   # Calling the drop enemies function
     score = Enemy.update_enemy_positions(ENEMY_LIST, score)  # It updates the enemy position and stores the score value
     # print(score)  # Prints score to the console
-    ENEMY_COUNT = set_level(score, ENEMY_COUNT)
+    ENEMY_COUNT = set_level(score, ENEMY_COUNT, ENEMY_LIST)
 
     text = "Score:" + str(score)  # Storing our score to "text" variable
     final_score = "Final Score: " + str(score)
