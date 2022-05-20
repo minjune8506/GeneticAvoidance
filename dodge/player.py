@@ -7,6 +7,7 @@ class Player() :
         self.px = WIDTH / 2 - PLAYER_SIZE / 2
         self.py = HEIGHT / 2 - PLAYER_SIZE / 2
         self.pos = [self.px, self.py] # player 초기 위치는 화면 가운데로 설정
+        self.inputs = [0, 0] # input 값을 계속 enemy 로 초기화를 진행할 것임 [하, 상, 우, 좌]
         
     def limit_x(self, px) : # x 좌표가 유효한 값인지 검사
         if (px <= 0) :
