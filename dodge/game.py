@@ -55,7 +55,6 @@ class Game() :
             if not x_move or not y_move : # x, y좌표중 하나라도 화면 밖에 있다면
                 self.enemylist.pop(idx) # enemy 제거
                 self.score += 1 # score 점수 증가
-
             elif self.out_of_range(enemy) : # 유효한 애들만
                 x_d, y_d = self.cal_real_distance(enemy)
                 distance = sqrt(pow(x_d, 2) + pow(y_d, 2))
