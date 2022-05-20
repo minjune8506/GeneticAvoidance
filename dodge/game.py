@@ -66,6 +66,7 @@ class Game() :
                 enemy_distance_list.append([distance, enemy.x_speed, enemy.y_speed]) # distance, x_speed, y_speed
         
         enemy_distance_list.sort(key = lambda x:x[0]) # distance 가 가장 낮은 애를 정렬
+        print(enemy_distance_list[0][0])
         self.player.inputs = [enemy_distance_list[0][1], enemy_distance_list[0][2]]
     
     def cal_real_distance(self, enemy) :    
