@@ -1,7 +1,10 @@
+from matplotlib import pyplot as plt
+import numpy as np
 from helpers import *
 from enemy import Enemy
 from player import Player
 import pygame
+import time
 import sys
 
 class Game() :
@@ -9,13 +12,11 @@ class Game() :
         pygame.init()  # To initialize pygame
         # set screen
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))  # We have a screen of WIDTH 800 and HEIGHT 600
-        self.player = Player() # Player 객체 생성
-        self.score = 0 # 점수
         self.clock = pygame.time.Clock() # It defines a clock
         self.myFont = pygame.font.SysFont("monospace", 35)  # Defining the font in pygame (Monospace is font and 35 is in pixels)
         self.endFont = pygame.font.SysFont("comicsansms", 40, True, False)
-        self.enemylist = [] # 적들을 담는 리스트
-        self.enemyMax = 10 # 적들의 최대 개수
+        self.scores = []
+        self.cnt = 0
     
     def set_level(self):
         if self.score < 20:
@@ -34,17 +35,17 @@ class Game() :
     def draw_enemies(self) :
         for enemy in self.enemylist : # enemylist에 있는 enemy객체들을 화면에 그린다.
             pygame.draw.rect(self.screen, BLUE, (enemy.px, enemy.py, ENEMY_SIZE, ENEMY_SIZE))
-        
+
     def update_enemy_positions(self) : # enemy의 위치 update
         for idx, enemy in enumerate(self.enemylist) :
             x_move = False
             y_move = False
             # print("(%d, %d)" %(enemy.px, enemy.py))
             if (0 <= enemy.px <= WIDTH) : # enemy가 화면 안에 있는지 검사
-                enemy.px += enemy.x_speed
+                enemy.px += enemy.x_speed * ENEMY_SPEED
                 x_move = True
             if (0 <= enemy.py <= HEIGHT) :
-                enemy.py += enemy.y_speed
+                enemy.py += enemy.y_speed * ENEMY_SPEED
                 y_move = True
             if not x_move or not y_move : # x, y좌표중 하나라도 화면 밖에 있다면
                 self.enemylist.pop(idx) # enemy 제거
@@ -77,31 +78,38 @@ class Game() :
         elif key_pressed[pygame.K_UP] :
             self.player.move_up()
     
+    def prepare(self) :
+        self.score = 0
+        self.player = Player()
+        self.enemylist = []
+        self.enemyMax = 30
+        
     def play(self) :
         game_over = False
+        self.prepare()
         while not game_over :
             for event in pygame.event.get() :
                 if event.type == pygame.QUIT :
                     sys.exit()
                 if event.type == pygame.KEYDOWN : # 키가 눌렸을떄
                     pass
-            self.move()
+            self.move() # Player Move (Key Event)
             self.screen.fill(BACKGROUND_COLOR) # 배경 설정
-            self.create_enemies() # enemy들 생성 -> enemyMax만큼 개수를 맞춘다.
+            self.create_enemies() # enemy들 생성 -> enemyMax만큼 Enemy 생성
             self.update_enemy_positions() # enemy 위치 update
             self.set_level() # level 설정 -> maxEnemy 값 변경
         
             scoreText = "Score:" + str(self.score)  # Storing our score to "text" variable
-            final_score = "Final Score: " + str(self.score)
-            msg = "Game Over!!"
-            label1 = self.myFont.render(scoreText, 1, YELLOW)
-            self.screen.blit(label1,  (WIDTH - 200, HEIGHT - 50)) # Attaching our label to screen
+            scoreLabel = self.myFont.render(scoreText, 1, YELLOW)
+            self.screen.blit(scoreLabel, (WIDTH - scoreLabel.get_width(), 0)) # Attaching our label to screen
             
             if self.collision_check() : # 충돌 감지
-                label2 = self.endFont.render(final_score, 1, RED)  # The font will be printed in "red"
-                label3 = self.endFont.render(msg, 1, (0, 255, 0))
-                self.screen.blit(label2, (250, 250))  # It updates text to the specific part(position) of the screen
-                self.screen.blit(label3, (250, 300))
+                final_score = "Final Score: " + str(self.score)
+                endScoreLabel = self.endFont.render(final_score, 1, RED)  # The font will be printed in "red"
+                endMsg = "Game Over!!"
+                endLabel = self.endFont.render(endMsg, 1, (0, 255, 0))
+                self.screen.blit(endScoreLabel, ((WIDTH - endScoreLabel.get_width()) / 2, (HEIGHT - endScoreLabel.get_height()) / 2))  # It updates text to the specific part(position) of the screen
+                self.screen.blit(endLabel, ((WIDTH - endScoreLabel.get_width()) / 2, (HEIGHT + endScoreLabel.get_height()) / 2))
                 game_over = True # Game Over
             
             self.draw_enemies() # enemy들을 화면에 그린다
@@ -110,9 +118,20 @@ class Game() :
             pygame.display.update() # screen update
             
             if game_over :
-                pygame.time.wait(1000) # game_over일 경우 1초 대기후 종료 -> 다시 플레이 하게 만들면 된다.
-                # 다시 플레이 하기 전에 matplot으로 세대별 점수 그래프를 그리면 될듯하다.
+                self.scores.append(self.score)
+                time.sleep(1)
+                break
+        plt.plot(np.array(list(range(self.cnt + 1))),
+                 np.array(self.scores)) # 그래프 값 추가
+        plt.draw()
+        self.cnt += 1
+        self.play() # Play Again
 
+fig = plt.figure(figsize=(9,6))
+ax = fig.add_subplot(1,1,1)
+ax.set_title("Dodge game")
+ax.set(xlabel = 'Generation', ylabel='Score')
+plt.show(block = False)
 game = Game() # Game 객체 생성
 game.play() # play
         
