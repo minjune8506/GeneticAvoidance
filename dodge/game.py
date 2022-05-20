@@ -1,7 +1,3 @@
-from xml.sax.xmlreader import InputSource
-
-from numpy import true_divide
-import outcome
 from helpers import *
 from enemy import Enemy
 from player import Player
