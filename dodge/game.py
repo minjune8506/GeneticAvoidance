@@ -57,8 +57,8 @@ class Game() :
                 self.score += 1 # score 점수 증가
 
             elif self.out_of_range(enemy) : # 유효한 애들만
-                x_y_distance = self.cal_real_distance(enemy)
-                distance = sqrt(pow(x_y_distance[1], 2) + pow(x_y_distance[0], 2))
+                x_d, y_d = self.cal_real_distance(enemy)
+                distance = sqrt(pow(x_d, 2) + pow(y_d, 2))
                 enemy_distance_list.append([distance, enemy.x_speed, enemy.y_speed]) # distance, x_speed, y_speed
         
         enemy_distance_list.sort(key = lambda x:x[0]) # distance 가 가장 낮은 애를 정렬
@@ -66,21 +66,22 @@ class Game() :
         self.player.inputs = [enemy_distance_list[0][1], enemy_distance_list[0][2]]
     
     def cal_real_distance(self, enemy) :    
-        x_y_distance = [0, 0] # 아래 조건에 걸리지 않는 경우는 x 혹은 y 가 겹쳐있는 상태를 의미하기에 0으로 설정이 되어야 한다.
-        x = self.player.pos[0]
-        y = self.player.pos[1]
+        x_d = 0
+        y_d = 0
+        p_x = self.player.pos[0]
+        p_y = self.player.pos[1]
 
-        if enemy.px + ENEMY_SIZE < x : # 왼쪽에 있으면
-            x_y_distance[0] = x - (enemy.px + ENEMY_SIZE)
-        elif x + PLAYER_SIZE < enemy.px : # 오른쪽에 있으면
-            x_y_distance[0] = enemy.px - (x + PLAYER_SIZE)
+        if enemy.px + ENEMY_SIZE < p_x : # 왼쪽에 있으면
+            x_d = p_x - (enemy.px + ENEMY_SIZE)
+        elif p_x + PLAYER_SIZE < enemy.px : # 오른쪽에 있으면
+            x_d = enemy.px - (p_x + PLAYER_SIZE)
 
-        if enemy.py + ENEMY_SIZE < y : # 위에 있으면
-            x_y_distance[1] = y - (enemy.py + ENEMY_SIZE)
-        elif y + PLAYER_SIZE < enemy.py : # 아래에 있으면
-            x_y_distance[1] = enemy.py - (y + PLAYER_SIZE)        
+        if enemy.py + ENEMY_SIZE < p_y : # 위에 있으면
+            y_d = p_y - (enemy.py + ENEMY_SIZE)
+        elif p_y + PLAYER_SIZE < enemy.py : # 아래에 있으면
+            y_d = enemy.py - (p_y + PLAYER_SIZE)        
 
-        return x_y_distance 
+        return x_d, y_d
     
     def out_of_range(self, enemy) :
         if ((enemy.py < 0 or enemy.py > HEIGHT) or (enemy.px < 0 or enemy.px > WIDTH)) : # 범위를 벗어나는 경우 False

@@ -19,7 +19,7 @@ class Network() :
     net = np.matmul(net, self.w3)
     net = np.tanh(net)
 
-    net = self.softmax(net) # 8 개의 방향 중 다중 분류를 위한, Softmax 적용
+    net = self.softmax(net) # 5 개의 방향 중 다중 분류를 위한, Softmax 적용
     return net
 
   def softmax(self, x) :

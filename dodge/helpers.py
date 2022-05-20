@@ -19,6 +19,3 @@ S = 1
 N = 2
 W = 3
 E = 4
-
-HORIZONTAL_RATIO = 1 / WIDTH # 가로 비율
-VERTICAL_RATIO = 1 / HEIGHT # 세로 비율
