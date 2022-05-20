@@ -66,22 +66,26 @@ class Game() :
                 return True
         return False  # False is returned only when the above if statements do not get run.
     
+    def move(self) : 
+        key_pressed = pygame.key.get_pressed()
+        if key_pressed[pygame.K_LEFT] :
+            self.player.move_left()
+        elif key_pressed[pygame.K_RIGHT] :
+            self.player.move_right()
+        elif key_pressed[pygame.K_DOWN] :
+            self.player.move_down()
+        elif key_pressed[pygame.K_UP] :
+            self.player.move_up()
+    
     def play(self) :
-        pygame.key.set_repeat(5,30) # 키보드를 부드럽게 (?)
         game_over = False
         while not game_over :
             for event in pygame.event.get() :
                 if event.type == pygame.QUIT :
                     sys.exit()
                 if event.type == pygame.KEYDOWN : # 키가 눌렸을떄
-                    if event.key == pygame.K_LEFT : # 왼쪽 방향키
-                        self.player.move_left()
-                    elif event.key == pygame.K_RIGHT : # 오른쪽 방향키
-                        self.player.move_right()
-                    elif event.key == pygame.K_DOWN : # 아래 방향키
-                        self.player.move_down()
-                    elif event.key == pygame.K_UP : # 위 방향키
-                        self.player.move_up()
+                    pass
+            self.move()
             self.screen.fill(BACKGROUND_COLOR) # 배경 설정
             self.create_enemies() # enemy들 생성 -> enemyMax만큼 개수를 맞춘다.
             self.update_enemy_positions() # enemy 위치 update
@@ -89,7 +93,7 @@ class Game() :
         
             scoreText = "Score:" + str(self.score)  # Storing our score to "text" variable
             final_score = "Final Score: " + str(self.score)
-            msg = "Better Luck next time!!"
+            msg = "Game Over!!"
             label1 = self.myFont.render(scoreText, 1, YELLOW)
             self.screen.blit(label1,  (WIDTH - 200, HEIGHT - 50)) # Attaching our label to screen
             

@@ -3,6 +3,7 @@ WIDTH = 800  # Global variables
 HEIGHT = 600
 
 PLAYER_SIZE = 15
+MOVE_SPEED = 10
 
 # Defining the color for player and enemy
 RED = (255, 0, 0)
