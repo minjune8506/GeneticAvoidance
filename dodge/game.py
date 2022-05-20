@@ -1,19 +1,28 @@
 from helpers import *
 from enemy import Enemy
 from player import Player
+from generation import Generation
 import pygame
 import sys
+import matplotlib.pyplot as plt
 
 class Game() :
     def __init__(self) :
         pygame.init()  # To initialize pygame
+
+        # 유전 알고리즘 start
+        self.generation = Generation()
+        self.population = self.generation.population
+        self.genomes = []
+
         # set screen
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))  # We have a screen of WIDTH 800 and HEIGHT 600
+        screen = pygame.display.set_mode((WIDTH, HEIGHT))  # We have a screen of WIDTH 800 and HEIGHT 600
         self.player = Player() # Player 객체 생성
-        self.score = 0 # 점수
+        self.n_gen = 0 # 지금은 몇 세대?
+        self.score = 0 # 점수 
         self.clock = pygame.time.Clock() # It defines a clock
-        self.myFont = pygame.font.SysFont("monospace", 35)  # Defining the font in pygame (Monospace is font and 35 is in pixels)
-        self.endFont = pygame.font.SysFont("comicsansms", 40, True, False)
+        myFont = pygame.font.SysFont("monospace", 35)  # Defining the font in pygame (Monospace is font and 35 is in pixels)
+        endFont = pygame.font.SysFont("comicsansms", 40, True, False)
         self.enemylist = [] # 적들을 담는 리스트
         self.enemyMax = 10 # 적들의 최대 개수
     
@@ -50,12 +59,6 @@ class Game() :
                 self.enemylist.pop(idx) # enemy 제거
                 self.score += 1 # score 점수 증가
     
-    def collision_check(self) : # player와 enemy가 충돌했는지 검사
-        for enemy in self.enemylist :
-            if self.detect_collision(self.player, enemy) : # 충돌 검사
-                return True
-        return False
-    
     def detect_collision(self, player, enemy) :
         p_x = player.px
         p_y = player.py
@@ -68,14 +71,22 @@ class Game() :
     
     def move(self) : 
         key_pressed = pygame.key.get_pressed()
-        if key_pressed[pygame.K_LEFT] :
-            self.player.move_left()
-        elif key_pressed[pygame.K_RIGHT] :
-            self.player.move_right()
-        elif key_pressed[pygame.K_DOWN] :
-            self.player.move_down()
-        elif key_pressed[pygame.K_UP] :
+        if self.player.isMove_up == True:
             self.player.move_up()
+        elif self.player.isMove_down == True:
+            self.player.move_down()
+        elif self.player.isMove_left == True:
+            self.player.move_left()
+        elif self.player.isMove_right == True:
+            self.player.move_right()
+        # if key_pressed[pygame.K_LEFT] :
+        #     self.player.move_left()
+        # elif key_pressed[pygame.K_RIGHT] :
+        #     self.player.move_right()
+        # elif key_pressed[pygame.K_DOWN] :
+        #     self.player.move_down()
+        # elif key_pressed[pygame.K_UP] :
+        #     self.player.move_up()
     
     def play(self) :
         game_over = False
@@ -92,12 +103,11 @@ class Game() :
             self.set_level() # level 설정 -> maxEnemy 값 변경
         
             scoreText = "Score:" + str(self.score)  # Storing our score to "text" variable
-            final_score = "Final Score: " + str(self.score)
-            msg = "Game Over!!"
+            final_score = final_score + str(self.score)
             label1 = self.myFont.render(scoreText, 1, YELLOW)
             self.screen.blit(label1,  (WIDTH - 200, HEIGHT - 50)) # Attaching our label to screen
             
-            if self.collision_check() : # 충돌 감지
+            if self.player.collision_check() : # 충돌 감지
                 label2 = self.endFont.render(final_score, 1, RED)  # The font will be printed in "red"
                 label3 = self.endFont.render(msg, 1, (0, 255, 0))
                 self.screen.blit(label2, (250, 250))  # It updates text to the specific part(position) of the screen
