@@ -114,7 +114,15 @@ class Game() :
         self.player = Player()
         self.enemylist = []
         self.enemyMax = 30
-        
+    
+    def print_end_msg(self) :
+        final_score = "Final Score: " + str(self.score)
+        endScoreLabel = self.endFont.render(final_score, 1, RED)  # The font will be printed in "red"
+        endMsg = "Game Over!!"
+        endLabel = self.endFont.render(endMsg, 1, (0, 255, 0))
+        self.screen.blit(endScoreLabel, ((WIDTH - endScoreLabel.get_width()) / 2, (HEIGHT - endScoreLabel.get_height()) / 2))  # It updates text to the specific part(position) of the screen
+        self.screen.blit(endLabel, ((WIDTH - endScoreLabel.get_width()) / 2, (HEIGHT + endScoreLabel.get_height()) / 2))
+    
     def play(self) :
         game_over = False
         self.prepare()
@@ -136,23 +144,18 @@ class Game() :
             self.screen.blit(scoreLabel, (WIDTH - scoreLabel.get_width(), 0)) # Attaching our label to screen
             
             if self.collision_check() : # 충돌 감지
-                final_score = "Final Score: " + str(self.score)
-                endScoreLabel = self.endFont.render(final_score, 1, RED)  # The font will be printed in "red"
-                endMsg = "Game Over!!"
-                endLabel = self.endFont.render(endMsg, 1, (0, 255, 0))
-                self.screen.blit(endScoreLabel, ((WIDTH - endScoreLabel.get_width()) / 2, (HEIGHT - endScoreLabel.get_height()) / 2))  # It updates text to the specific part(position) of the screen
-                self.screen.blit(endLabel, ((WIDTH - endScoreLabel.get_width()) / 2, (HEIGHT + endScoreLabel.get_height()) / 2))
                 game_over = True # Game Over
+                self.print_end_msg()
             
             self.draw_enemies() # enemy들을 화면에 그린다
             pygame.draw.rect(self.screen, RED, (self.player.px, self.player.py, PLAYER_SIZE, PLAYER_SIZE)) # player를 화면에 그린다.
             self.clock.tick(60) # 60 Frame
             pygame.display.update() # screen update
-            
             if game_over :
                 self.scores.append(self.score)
                 time.sleep(1)
                 break
+        
         plt.plot(np.array(list(range(self.cnt + 1))),
                  np.array(self.scores)) # 그래프 값 추가
         plt.draw()
