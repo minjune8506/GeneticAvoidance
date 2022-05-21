@@ -15,6 +15,8 @@ BACKGROUND_COLOR = (0, 0, 0)  # Setting the background color, Black
 # Defining an enemy
 ENEMY_SIZE = 10
 ENEMY_LIST = []  # Defining an enemy list to contain multiple enemies
+ENEMY_SPEED = 2
+
 S = 1
 N = 2
 W = 3

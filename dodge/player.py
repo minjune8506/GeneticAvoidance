@@ -4,8 +4,8 @@ import pygame
 # Key 입력을 받아서 Player를 움직이는 부분은 추후 신경망 출력값으로 결정해야 하기 때문에 수정 대상
 class Player() :
     def __init__(self) :
-        self.px = WIDTH / 2 - PLAYER_SIZE / 2
-        self.py = HEIGHT / 2 - PLAYER_SIZE / 2
+        self.px = (WIDTH - PLAYER_SIZE) / 2
+        self.py = (HEIGHT - PLAYER_SIZE) / 2
         self.pos = [self.px, self.py] # player 초기 위치는 화면 가운데로 설정
         self.inputs = [0, 0] # 가장 가까운 장애물의 이동방향
         
