@@ -7,6 +7,7 @@ class Player() :
         self.px = (WIDTH - PLAYER_SIZE) / 2
         self.py = (HEIGHT - PLAYER_SIZE) / 2
         self.pos = [self.px, self.py] # player 초기 위치는 화면 가운데로 설정
+        self.inputs = [0, 0] # 가장 가까운 장애물의 이동방향
         
     def limit_x(self, px) : # x 좌표가 유효한 값인지 검사
         if (px <= 0) :
