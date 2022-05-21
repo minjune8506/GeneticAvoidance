@@ -16,11 +16,7 @@ class Player():
 
         self.fitness = 0
 
-    def collision_check(self):  # player와 enemy가 충돌했는지 검사
-        for enemy in self.enemylist:
-            if self.detect_collision(self.player, enemy):  # 충돌 검사
-                return True
-        return False
+    
 
     def limit_x(self, px):  # x 좌표가 유효한 값인지 검사
         if (px <= 0):

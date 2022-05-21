@@ -58,7 +58,12 @@ class Game() :
             if not x_move or not y_move : # x, y좌표중 하나라도 화면 밖에 있다면
                 self.enemylist.pop(idx) # enemy 제거
                 self.score += 1 # score 점수 증가
-    
+    def collision_check(self):  # player와 enemy가 충돌했는지 검사
+        for enemy in self.enemylist:
+            if self.detect_collision(self.player, enemy):  # 충돌 검사
+                return True
+        return False
+        
     def detect_collision(self, player, enemy) :
         p_x = player.px
         p_y = player.py
