@@ -41,29 +41,28 @@ class Game() :
             pygame.draw.rect(self.screen, BLUE, (enemy.px, enemy.py, ENEMY_SIZE, ENEMY_SIZE))
 
     def update_enemy_positions(self) : # enemy의 위치 update
-        enemy_distance_list = []
+        min_val = [10000000, 0, 0]
         for idx, enemy in enumerate(self.enemylist) :
             x_move = False
             y_move = False
-            # print("(%d, %d)" %(enemy.px, enemy.py))
-            if (0 <= enemy.px <= WIDTH) : # enemy가 화면 안에 있는지 검사
+            if (0 <= enemy.px + enemy.x_speed * ENEMY_SPEED <= WIDTH) : # enemy가 화면 안에 있는지 검사
                 enemy.px += enemy.x_speed * ENEMY_SPEED
                 x_move = True
-            if (0 <= enemy.py <= HEIGHT) :
+            if (0 <= enemy.py + enemy.y_speed * ENEMY_SPEED <= HEIGHT) :
                 enemy.py += enemy.y_speed * ENEMY_SPEED
                 y_move = True
 
             if not x_move or not y_move : # x, y좌표중 하나라도 화면 밖에 있다면
                 self.enemylist.pop(idx) # enemy 제거
                 self.score += 1 # score 점수 증가
-            elif self.out_of_range(enemy) : # 유효한 애들만
+            else :
+                # print("(%d, %d)" %(enemy.px, enemy.py))
                 x_d, y_d = self.cal_real_distance(enemy)
                 distance = sqrt(pow(x_d, 2) + pow(y_d, 2))
-                enemy_distance_list.append([distance, enemy.x_speed, enemy.y_speed]) # distance, x_speed, y_speed
-        
-        enemy_distance_list.sort(key = lambda x:x[0]) # distance 가 가장 낮은 애를 정렬
-        print(enemy_distance_list[0][0])
-        self.player.inputs = [enemy_distance_list[0][1], enemy_distance_list[0][2]]
+                if (min_val[0] > distance) :
+                    min_val = [distance, enemy.x_speed, enemy.y_speed] # distance, x_speed, y_speed
+        # print("min distance :", min_val[0])
+        self.player.inputs = [min_val[1], min_val[2]]
     
     def cal_real_distance(self, enemy) :    
         x_d = 0
@@ -82,12 +81,6 @@ class Game() :
             y_d = enemy.py - (p_y + PLAYER_SIZE)        
 
         return x_d, y_d
-    
-    def out_of_range(self, enemy) :
-        if ((enemy.py < 0 or enemy.py > HEIGHT) or (enemy.px < 0 or enemy.px > WIDTH)) : # 범위를 벗어나는 경우 False
-            return False
-        else : # 범위를 벗어나지 않는 경우 검사
-            return True
 
     def collision_check(self) : # player와 enemy가 충돌했는지 검사
         for enemy in self.enemylist :
@@ -136,7 +129,7 @@ class Game() :
             self.create_enemies() # enemy들 생성 -> enemyMax만큼 Enemy 생성
             self.update_enemy_positions() # enemy 위치 update
             self.set_level() # level 설정 -> maxEnemy 값 변경
-            print(self.get_inputs())
+            # print(self.get_inputs())
         
             scoreText = "Score:" + str(self.score)  # Storing our score to "text" variable
             scoreLabel = self.myFont.render(scoreText, 1, YELLOW)
