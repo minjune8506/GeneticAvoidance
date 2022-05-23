@@ -1,14 +1,17 @@
 from helpers import *
-import pygame
 
-# Key 입력을 받아서 Player를 움직이는 부분은 추후 신경망 출력값으로 결정해야 하기 때문에 수정 대상
 class Player() :
     def __init__(self) :
         self.px = (WIDTH - PLAYER_SIZE) / 2
         self.py = (HEIGHT - PLAYER_SIZE) / 2
         self.pos = [self.px, self.py] # player 초기 위치는 화면 가운데로 설정
-        self.inputs = [0, 0] # 가장 가까운 장애물의 이동방향
+        self.distance = [1000000, 0, 0] # 가장 가까운 장애물과의 거리, x_speed, y_speed
+        self.score = 0
+        self.dead = False
         
+    def get_inputs(self) : # 지금 껏 계산된 player input 을 반환
+        return self.distance # Input Layer 입력값
+    
     def limit_x(self, px) : # x 좌표가 유효한 값인지 검사
         if (px <= 0) :
             px = 0

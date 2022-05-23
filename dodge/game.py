@@ -1,26 +1,26 @@
 from matplotlib import pyplot as plt
 import numpy as np
-from helpers import *
-from enemy import Enemy
-from player import Player
 import pygame
 import time
 import sys
+import copy
 from math import *
+from helpers import *
+from enemy import Enemy
+from player import Player
+from generation import Generation
 
 class Game() :
     def __init__(self) :
         pygame.init()  # To initialize pygame
-        # set screen
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))  # We have a screen of WIDTH 800 and HEIGHT 600
+        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))  # screen 생성
         self.clock = pygame.time.Clock() # It defines a clock
         self.myFont = pygame.font.SysFont("monospace", 35)  # Defining the font in pygame (Monospace is font and 35 is in pixels)
         self.endFont = pygame.font.SysFont("comicsansms", 40, True, False)
-        self.scores = []
-        self.cnt = 0
-    
-    def get_inputs(self) : # 지금 껏 계산된 player input 을 반환
-        return self.player.inputs
+        self.generation = Generation() # Generation 생성 (유전자 모음)
+        self.genomes = copy.deepcopy(self.generation.genomes)
+        self.gen = 0 # 세대
+        self.scores = [] # Score 모음
 
     def set_level(self) :
         if self.score < 20:
@@ -28,10 +28,10 @@ class Game() :
         elif self.score < 50:
             self.enemyMax = 50 # level 2
         elif self.score < 100:
-            self.enemyMax = 100 # level 3
+            self.enemyMax = 70 # level 3
         else:
-            self.enemyMax = 200 # level 4
-    
+            self.enemyMax = 100 # level 4
+
     def create_enemies(self) :
         while len(self.enemylist) < self.enemyMax : # enemyMax 만큼 enemy 객체 생성
             self.enemylist.append(Enemy()) # 리스트에 추가
@@ -41,7 +41,6 @@ class Game() :
             pygame.draw.rect(self.screen, BLUE, (enemy.px, enemy.py, ENEMY_SIZE, ENEMY_SIZE))
 
     def update_enemy_positions(self) : # enemy의 위치 update
-        min_val = [10000000, 0, 0]
         for idx, enemy in enumerate(self.enemylist) :
             x_move = False
             y_move = False
@@ -57,18 +56,23 @@ class Game() :
                 self.score += 1 # score 점수 증가
             else :
                 # print("(%d, %d)" %(enemy.px, enemy.py))
-                x_d, y_d = self.cal_real_distance(enemy)
-                distance = sqrt(pow(x_d, 2) + pow(y_d, 2))
-                if (min_val[0] > distance) :
-                    min_val = [distance, enemy.x_speed, enemy.y_speed] # distance, x_speed, y_speed
-        # print("min distance :", min_val[0])
-        self.player.inputs = [min_val[1], min_val[2]]
+                for player in self.players :
+                    if (player.dead == True) : # Player가 이미 죽은 경우 넘어간다.
+                        continue
+                    x_d, y_d = self.cal_real_distance(enemy, player)
+                    distance = sqrt(pow(x_d, 2) + pow(y_d, 2)) # player와 enemy 거리 계산
+                    # player.distance = [min(player.distance[0], distance), enemy.x_speed, enemy.y_speed]
+                    if (min(player.distance[0], distance) == player.distance[0]) :
+                        player.distance = player.distance
+                    else :
+                        player.distance = [distance, enemy.x_speed, enemy.y_speed]
+                # print("distance : " + str(self.players[0].distance))
     
-    def cal_real_distance(self, enemy) :    
+    def cal_real_distance(self, enemy, player) :
         x_d = 0
         y_d = 0
-        p_x = self.player.pos[0]
-        p_y = self.player.pos[1]
+        p_x = player.pos[0]
+        p_y = player.pos[1]
 
         if enemy.px + ENEMY_SIZE < p_x : # 왼쪽에 있으면
             x_d = p_x - (enemy.px + ENEMY_SIZE)
@@ -82,11 +86,11 @@ class Game() :
 
         return x_d, y_d
 
-    def collision_check(self) : # player와 enemy가 충돌했는지 검사
+    def collision_check(self, idx) : # player와 enemy가 충돌했는지 검사
         for enemy in self.enemylist :
-            if self.detect_collision(self.player, enemy) : # 충돌 검사
+            if self.detect_collision(self.players[idx], enemy) : # 충돌 검사
                 return True
-        return False        
+        return False
 
     def detect_collision(self, player, enemy) :
         p_x = player.px
@@ -98,24 +102,39 @@ class Game() :
                 return True
         return False  # False is returned only when the above if statements do not get run.
     
-    def move(self) : 
-        key_pressed = pygame.key.get_pressed()
-        if key_pressed[pygame.K_LEFT] :
-            self.player.move_left()
-        elif key_pressed[pygame.K_RIGHT] :
-            self.player.move_right()
-        elif key_pressed[pygame.K_DOWN] :
-            self.player.move_down()
-        elif key_pressed[pygame.K_UP] :
-            self.player.move_up()
+    def move(self, idx, output) : # 신경망 결과 값으로 방향 조정
+        max_val = max(output)
+        if max_val == output[UP] : # Up
+            self.players[idx].move_up()
+        elif max_val == output[DOWN] : # Down
+            self.players[idx].move_down()
+        elif max_val == output[LEFT] : # Left
+            self.players[idx].move_left()
+        elif max_val == output[RIGHT] : # Right
+            self.players[idx].move_right()
+        elif max_val == output[UPLEFT] :
+            self.players[idx].move_up()
+            self.players[idx].move_left()
+        elif max_val == output[UPRIGHT] :
+            self.players[idx].move_up()
+            self.players[idx].move_right()
+        elif max_val == output[DOWNLEFT] :
+            self.players[idx].move_down()
+            self.players[idx].move_left()
+        elif max_val == output[DOWNRIGHT] :
+            self.players[idx].move_down()
+            self.players[idx].move_right()
     
     def prepare(self) :
-        self.score = 0
-        self.player = Player()
-        self.enemylist = []
-        self.enemyMax = 30
+        self.score = 0 # score
+        self.players = [] # Player 보관 리스트
+        for i in range (self.generation.population) :
+            self.players.append(Player()) # 세대의 인구 수만큼 플레이어 생성
+        self.genomes = copy.deepcopy(self.generation.genomes) # generation의 유전자 값 복사
+        self.enemylist = [] # 적들의 리스트
+        self.enemyMax = 30 # 최대 적 갯수
     
-    def print_end_msg(self) :
+    def print_end_msg(self) : # 게임이 끝나지 않고 진행되므로 안써도 되는 메소드
         final_score = "Final Score: " + str(self.score)
         endScoreLabel = self.endFont.render(final_score, 1, RED)  # The font will be printed in "red"
         endMsg = "Game Over!!"
@@ -132,41 +151,66 @@ class Game() :
                     sys.exit()
                 if event.type == pygame.KEYDOWN : # 키가 눌렸을떄
                     pass
-            self.move() # Player Move (Key Event)
             self.screen.fill(BACKGROUND_COLOR) # 배경 설정
             self.create_enemies() # enemy들 생성 -> enemyMax만큼 Enemy 생성
             self.update_enemy_positions() # enemy 위치 update
             self.set_level() # level 설정 -> maxEnemy 값 변경
-            # print(self.get_inputs())
-        
-            scoreText = "Score:" + str(self.score)  # Storing our score to "text" variable
-            scoreLabel = self.myFont.render(scoreText, 1, YELLOW)
-            self.screen.blit(scoreLabel, (WIDTH - scoreLabel.get_width(), 0)) # Attaching our label to screen
             
-            if self.collision_check() : # 충돌 감지
-                game_over = True # Game Over
-                self.print_end_msg()
+            for i in range(self.generation.population) :
+                if self.players[i].dead == True : # 이미 죽었으면 넘어간다.
+                    continue
+                output = self.genomes[i].decisionOutput(self.players[i].get_inputs()) # 신경망 계산
+                self.move(i, output) # Player Move
+                if self.collision_check(i) : # 충돌 검사
+                    self.players[i].dead = True # dead
+                    self.genomes[i].fitness = self.score # 적합도 설정
+            
+            for player in self.players :
+                player.distance = [1000000, 0, 0]
+            
+            scoreText = "Score:" + str(self.score)  # Score 갱신
+            scoreLabel = self.myFont.render(scoreText, 1, YELLOW)
+            self.screen.blit(scoreLabel, (WIDTH - scoreLabel.get_width(), 0)) # Screen에 Label 추가
             
             self.draw_enemies() # enemy들을 화면에 그린다
-            pygame.draw.rect(self.screen, RED, (self.player.px, self.player.py, PLAYER_SIZE, PLAYER_SIZE)) # player를 화면에 그린다.
+            for player in self.players :
+                if player.dead == True : # 죽었으면 패스
+                    continue
+                # 안죽은 플레이어만 화면에 그린다.
+                pygame.draw.rect(self.screen, RED, (player.px, player.py, PLAYER_SIZE, PLAYER_SIZE))
+            
             self.clock.tick(60) # 60 Frame
             pygame.display.update() # screen update
-            if game_over :
+            
+            # Player가 모두 죽었는지 확인
+            game_over = True
+            for i in range(self.generation.population) :
+                if (self.players[i].dead == False) :
+                    game_over = False
+
+            if game_over : # Game Over
                 self.scores.append(self.score)
+                print("---------Generation %d Ends---------" %self.gen)
+                print("Max Score : %d" %self.score)
+                self.generation.genomes = copy.deepcopy(self.genomes)
+                self.generation.keep_best_genomes() # 적합도가 높은 유전자 보존
+                self.generation.mutations() # 유전자 교배
                 time.sleep(1)
                 break
         
-        plt.plot(np.array(list(range(self.cnt + 1))),
+        plt.plot(np.array(list(range(self.gen + 1))),
                  np.array(self.scores)) # 그래프 값 추가
         plt.draw()
-        self.cnt += 1
+        self.gen += 1
         self.play() # Play Again
 
-fig = plt.figure(figsize=(9,6))
+# 그래프 그리기 위해 초기화
+fig = plt.figure(figsize=(6,4))
 ax = fig.add_subplot(1,1,1)
 ax.set_title("Dodge game")
 ax.set(xlabel = 'Generation', ylabel='Score')
 plt.show(block = False)
+
 game = Game() # Game 객체 생성
 game.play() # play
         
