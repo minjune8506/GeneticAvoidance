@@ -25,18 +25,12 @@ class Generation():
 
     def mutations(self):  # 돌연변이
         # 40보다 작을 때까지? 이미 고른 우수한 유전자 10개를 가지고 40개를 교배 & 돌연변이 생성
-        while len(self.genomes) < self.keep_best * 4:
+        while len(self.genomes) < self.keep_best * 5:
             # 가장 적합도가 높은 10마리 중 하나를 랜덤하게 선택
             genome1 = random.choice(self.best_genomes)
             # 가장 적합도가 높은 10마리 중 하나를 랜덤하게 선택
             genome2 = random.choice(self.best_genomes)
             self.genomes.append(self.mutate(self.cross_over(genome1, genome2)))  # 교배 -> 돌연변이
-
-        while len(self.genomes) < self.population:  # 나머지 10개를 만들어야 하는데
-            genome = random.choice(self.best_genomes)  # 10개는 우수한 유전자를 가져와서
-            # 돌연변이(확률성) 확률 해당하면 돌연변이 -> 아니면 그냥 유지
-            self.genomes.append(self.mutate(genome))
-
         random.shuffle(self.genomes)  # 유전자 리스트 항목 섞기
         return self.genomes
 
@@ -52,9 +46,9 @@ class Generation():
             new_genome.W1[i], other_genome.W1[i] = other_genome.W1[i], new_genome.W1[i]
             # 0 ~ cut_location까지 섞어준다.
 
-        cut_location = int(len(new_genome.W2) * random.uniform(0, 1))  # W2 교배
-        for i in range(cut_location):
-            new_genome.W2[i], other_genome.W2[i] = other_genome.W2[i], new_genome.W2[i]
+        # cut_location = int(len(new_genome.W2) * random.uniform(0, 1))  # W2 교배
+        # for i in range(cut_location):
+        #     new_genome.W2[i], other_genome.W2[i] = other_genome.W2[i], new_genome.W2[i]
 
         cut_location = int(len(new_genome.W3) * random.uniform(0, 1))  # W3 교배
         for i in range(cut_location):
@@ -73,6 +67,6 @@ class Generation():
     def mutate(self, genome):  # 돌연변이
         new_genome = copy.deepcopy(genome)  # 교배를 끝난 유전자를 가져온다.
         new_genome.W1 += self.mutate_weights(new_genome.W1)
-        new_genome.W2 += self.mutate_weights(new_genome.W2)
+        # new_genome.W2 += self.mutate_weights(new_genome.W2)
         new_genome.W3 += self.mutate_weights(new_genome.W3)
         return new_genome

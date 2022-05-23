@@ -31,7 +31,7 @@ class Game() :
             self.enemyMax = 70 # level 3
         else:
             self.enemyMax = 100 # level 4
-    
+
     def create_enemies(self) :
         while len(self.enemylist) < self.enemyMax : # enemyMax 만큼 enemy 객체 생성
             self.enemylist.append(Enemy()) # 리스트에 추가
@@ -61,10 +61,14 @@ class Game() :
                         continue
                     x_d, y_d = self.cal_real_distance(enemy, player)
                     distance = sqrt(pow(x_d, 2) + pow(y_d, 2)) # player와 enemy 거리 계산
-                    player.distance = [min(player.distance[0], distance), enemy.x_speed, enemy.y_speed]
+                    # player.distance = [min(player.distance[0], distance), enemy.x_speed, enemy.y_speed]
+                    if (min(player.distance[0], distance) == player.distance[0]) :
+                        player.distance = player.distance
+                    else :
+                        player.distance = [distance, enemy.x_speed, enemy.y_speed]
+                # print("distance : " + str(self.players[0].distance))
     
     def cal_real_distance(self, enemy, player) :
-        # 위치 계산을 아예 enemy의 중심값, player의 중심값을 기준으로 계산해보는건 어떤지..?
         x_d = 0
         y_d = 0
         p_x = player.pos[0]
@@ -108,8 +112,18 @@ class Game() :
             self.players[idx].move_left()
         elif max_val == output[RIGHT] : # Right
             self.players[idx].move_right()
-        elif max_val == output[STAY] : # Stay
-            pass
+        elif max_val == output[UPLEFT] :
+            self.players[idx].move_up()
+            self.players[idx].move_left()
+        elif max_val == output[UPRIGHT] :
+            self.players[idx].move_up()
+            self.players[idx].move_right()
+        elif max_val == output[DOWNLEFT] :
+            self.players[idx].move_down()
+            self.players[idx].move_left()
+        elif max_val == output[DOWNRIGHT] :
+            self.players[idx].move_down()
+            self.players[idx].move_right()
     
     def prepare(self) :
         self.score = 0 # score
@@ -150,7 +164,10 @@ class Game() :
                 if self.collision_check(i) : # 충돌 검사
                     self.players[i].dead = True # dead
                     self.genomes[i].finess = self.score # 적합도 설정
-        
+            
+            for player in self.players :
+                player.distance = [1000000, 0, 0]
+            
             scoreText = "Score:" + str(self.score)  # Score 갱신
             scoreLabel = self.myFont.render(scoreText, 1, YELLOW)
             self.screen.blit(scoreLabel, (WIDTH - scoreLabel.get_width(), 0)) # Screen에 Label 추가

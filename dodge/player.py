@@ -10,7 +10,7 @@ class Player() :
         self.dead = False
         
     def get_inputs(self) : # 지금 껏 계산된 player input 을 반환
-        return [self.distance[1], self.distance[2]] # Input Layer 입력값
+        return self.distance # Input Layer 입력값
     
     def limit_x(self, px) : # x 좌표가 유효한 값인지 검사
         if (px <= 0) :
