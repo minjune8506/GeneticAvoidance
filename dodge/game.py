@@ -163,7 +163,7 @@ class Game() :
                 self.move(i, output) # Player Move
                 if self.collision_check(i) : # 충돌 검사
                     self.players[i].dead = True # dead
-                    self.genomes[i].finess = self.score # 적합도 설정
+                    self.genomes[i].fitness = self.score # 적합도 설정
             
             for player in self.players :
                 player.distance = [1000000, 0, 0]
