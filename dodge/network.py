@@ -4,9 +4,9 @@ class Network() :
   def __init__(self) :
     self.fitness = 0 # 적합도
     hidden_layer = 9 # hidden layer 노드 갯수
-    self.W1 = np.random.randn(3, hidden_layer)
+    self.W1 = np.random.randn(5, hidden_layer)
     # self.W2 = np.random.randn(hidden_layer, hidden_layer)
-    self.W3 = np.random.randn(hidden_layer, 8) # w 값들을 무작위로 지정
+    self.W3 = np.random.randn(hidden_layer, 9) # w 값들을 무작위로 지정
     
   def decisionOutput(self, inputs) : # 방향 결정 (아웃풋) [상, 하, 좌, 우, 대각 4개, 가만히]
     net = np.matmul(inputs, self.W1)

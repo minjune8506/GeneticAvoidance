@@ -1,3 +1,4 @@
+from this import d
 from matplotlib import pyplot as plt
 import numpy as np
 import pygame
@@ -21,6 +22,7 @@ class Game() :
         self.genomes = copy.deepcopy(self.generation.genomes)
         self.gen = 0 # 세대
         self.scores = [] # Score 모음
+        self.fitness_list = [] # fitness 모음 (새로 추가)
 
     def set_level(self) :
         if self.score < 20:
@@ -65,8 +67,86 @@ class Game() :
                     if (min(player.distance[0], distance) == player.distance[0]) :
                         player.distance = player.distance
                     else :
-                        player.distance = [distance, enemy.x_speed, enemy.y_speed]
+                        enemy_dir = self.judge_enemy_dir(enemy, player)
+                        closer_wall = self.judge_closer_wall(player)
+                        player.distance = [distance, enemy.x_speed, enemy.y_speed, enemy_dir, closer_wall]
                 # print("distance : " + str(self.players[0].distance))
+
+            for i in range(len(self.players)) : # 플레이어를 전부다 돌면서, 이전 distance 와 비교해준다. 현재 distance 의 [0] 을 넣어준다 하면서
+                player= self.players[i]
+                if (player.dead == True) : # Player 가 죽은 상태이면 넘어가는 것은 똑같다.
+                    continue
+                if (player.pre_distance <= player.distance[0]) : # 이전 distance 보다 더 멀어진 경우 (fitness 1.5 증가)
+                    self.genomes[i].fitness += 0.0015
+                else :
+                    self.genomes[i].fitness -= 0.001
+
+                if player.distance[3] == 1 :
+                    self.genomes[i].fitness += 0.0015
+                else :
+                    self.genomes[i].fitness -= 0.001
+
+                player.pre_distance = player.distance[0] # 다시 pre_distance 갱신
+    
+    def judge_closer_wall(self, player) :
+        pre_x = player.pre_pos[0]
+        pre_y = player.pre_pos[1]
+        now_x = player.pos[0]
+        now_y = player.pos[1]
+
+        distance_list = []
+        distance_list.append(pre_y - 30) # 위쪽 벽과 떨어진 거리를 계산
+        distance_list.append((HEIGHT - 30) - (pre_y + PLAYER_SIZE)) # 아래쪽 벽과 떨어진 거리를 계산
+        distance_list.append(pre_x - 30) # 왼쪽 벽과 떨어진 거리를 계산
+        distance_list.append((WIDTH - 30) - (pre_x + PLAYER_SIZE)) # 오른쪽 벽과 떨어진 거리를 계산
+
+        index = -1 # 0 = UP, 1 = DOWN, 2 = LEFT, 3 = RIGHT 방향을 의미하고, 이것을 이용해서 index 를 받아온다.
+
+        for i in range(len(distance_list)) :
+            if distance_list[i] < 0 :
+                continue
+            if index == -1 :
+                index = i
+            if distance_list[index] > distance_list[i] :
+                index = i
+    
+        wall = [30, HEIGHT - 30, 30, WIDTH - 30] # 정해진 방향에 따른 벽의 위치 판단
+        p_list = [now_y, now_y, now_x, now_x]
+        real_size = [0, PLAYER_SIZE, 0, PLAYER_SIZE]
+        
+        if distance_list[index] - abs(wall[index] - (p_list[index] + real_size[index])) < 0 : # 움직이기 이전의 벽과의 거리 (가장 가까운) - 움직인 후의 벽과의 거리 (이전에 가장 가까웠던 벽과의) 가 음수이다? 그러면 멀어진거임
+            return 1
+        else :        
+            return 0
+        
+    def judge_enemy_dir(self, enemy, player) :
+        e_x = enemy.px
+        e_y = enemy.py
+        p_x = player.pos[0]
+        p_y = player.pos[1]
+
+        if e_x == p_x : # 적과 세로로 존재하는 경우
+            if e_y < p_y :
+                return UP
+            else :
+                return DOWN                
+        elif e_y == p_y : # 적과 가로로 존재하는 경우
+            if e_x < p_x :
+                return LEFT
+            else :
+                return RIGHT
+        else : # 대각선 방향들        
+            if e_y < p_y :
+                if e_x < p_x :
+                    return UPLEFT
+                else :
+                    return UPRIGHT
+            else :
+                if e_x < p_x :
+                    return DOWNLEFT
+                else :
+                    return DOWNRIGHT
+                
     
     def cal_real_distance(self, enemy, player) :
         x_d = 0
@@ -104,6 +184,8 @@ class Game() :
     
     def move(self, idx, output) : # 신경망 결과 값으로 방향 조정
         max_val = max(output)
+        self.players[idx].pre_pos = [self.players[idx].pos[0], self.players[idx].pos[1]] # 움직이기 이전에 현재 위치를 이전 위치로 등록
+
         if max_val == output[UP] : # Up
             self.players[idx].move_up()
         elif max_val == output[DOWN] : # Down
@@ -124,12 +206,16 @@ class Game() :
         elif max_val == output[DOWNRIGHT] :
             self.players[idx].move_down()
             self.players[idx].move_right()
+        elif max_val == output[STAY] :
+            pass
+            
     
     def prepare(self) :
         self.score = 0 # score
         self.players = [] # Player 보관 리스트
         for i in range (self.generation.population) :
             self.players.append(Player()) # 세대의 인구 수만큼 플레이어 생성
+            self.genomes[i].fitness = 0 # 새로 시작할 때마다, genome fitness 수정
         self.genomes = copy.deepcopy(self.generation.genomes) # generation의 유전자 값 복사
         self.enemylist = [] # 적들의 리스트
         self.enemyMax = 30 # 최대 적 갯수
@@ -163,10 +249,10 @@ class Game() :
                 self.move(i, output) # Player Move
                 if self.collision_check(i) : # 충돌 검사
                     self.players[i].dead = True # dead
-                    self.genomes[i].fitness = self.score # 적합도 설정
+                    self.genomes[i].fitness += self.score # 적합도 설정
             
             for player in self.players :
-                player.distance = [1000000, 0, 0]
+                player.distance = [1000000, 0, 0, 0, 0]
             
             scoreText = "Score:" + str(self.score)  # Score 갱신
             scoreLabel = self.myFont.render(scoreText, 1, YELLOW)
@@ -189,17 +275,19 @@ class Game() :
                     game_over = False
 
             if game_over : # Game Over
-                self.scores.append(self.score)
+                self.scores.append(self.score)            
                 print("---------Generation %d Ends---------" %self.gen)
                 print("Max Score : %d" %self.score)
-                self.generation.genomes = copy.deepcopy(self.genomes)
+                self.generation.genomes = copy.deepcopy(self.genomes)            
                 self.generation.keep_best_genomes() # 적합도가 높은 유전자 보존
+                self.fitness_list.append(self.generation.genomes[0].fitness) # keep_best_genomes 에서 정렬을 해주니까 여기서 넣어줌
                 self.generation.mutations() # 유전자 교배
                 time.sleep(1)
                 break
-        
+            
+            
         plt.plot(np.array(list(range(self.gen + 1))),
-                 np.array(self.scores)) # 그래프 값 추가
+                 np.array(self.fitness_list)) # 그래프 값 추가)) # 그래프 값 추가
         plt.draw()
         self.gen += 1
         self.play() # Play Again
@@ -208,7 +296,7 @@ class Game() :
 fig = plt.figure(figsize=(6,4))
 ax = fig.add_subplot(1,1,1)
 ax.set_title("Dodge game")
-ax.set(xlabel = 'Generation', ylabel='Score')
+ax.set(xlabel = 'Generation', ylabel='Fitness')
 plt.show(block = False)
 
 game = Game() # Game 객체 생성

@@ -4,7 +4,7 @@ from network import Network
 
 class Generation():
     def __init__(self):
-        self.population = 50  # 한 세대에 공룡 50마리
+        self.population = 50  # 한 세대에 꼬물이 50마리
         self.keep_best = 10  # 몇개를 살릴건지?
         self.genomes = self.set_initial_genomes() # 유전자 초기화
         self.chance_of_mutation = 0.1  # 돌연변이 확률
