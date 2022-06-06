@@ -7,7 +7,7 @@ class Generation():
         self.population = 50  # 한 세대에 Player 50명
         self.keep_best = 10  # 몇개를 살릴건지?
         self.genomes = self.set_initial_genomes() # 유전자 초기화
-        self.chance_of_mutation = 0.1  # 돌연변이 확률
+        self.chance_of_mutation = 0.05  # 돌연변이 확률
 
     def set_initial_genomes(self):  # 0세대 유전자들 초기값 설정
         genomes = []
@@ -20,12 +20,15 @@ class Generation():
 
     def keep_best_genomes(self):  # 적합도가 가장 잘 나온 10마리를 살린다.
         self.genomes.sort(key=lambda x: x.fitness, reverse=True)  # 적합도 기준으로 정렬
+        for genome in self.genomes :
+            print(genome.fitness, end=" ")
+        print() # 적합도 정렬 결과 출력
         self.best_genomes = self.genomes[:self.keep_best]  # 잘라서 가지고 있는다.
         self.genomes = copy.deepcopy(self.best_genomes[:])
 
     def mutations(self):  # 돌연변이
         # 40보다 작을 때까지? 이미 고른 우수한 유전자 10개를 가지고 40개를 교배 & 돌연변이 생성
-        while len(self.genomes) < self.keep_best * 5:
+        while len(self.genomes) < self.population :
             # 가장 적합도가 높은 10마리 중 하나를 랜덤하게 선택
             genome1 = random.choice(self.best_genomes)
             # 가장 적합도가 높은 10마리 중 하나를 랜덤하게 선택
@@ -46,9 +49,9 @@ class Generation():
             new_genome.W1[i], other_genome.W1[i] = other_genome.W1[i], new_genome.W1[i]
             # 0 ~ cut_location까지 섞어준다.
 
-        # cut_location = int(len(new_genome.W2) * random.uniform(0, 1))  # W2 교배
-        # for i in range(cut_location):
-        #     new_genome.W2[i], other_genome.W2[i] = other_genome.W2[i], new_genome.W2[i]
+        cut_location = int(len(new_genome.W2) * random.uniform(0, 1))  # W2 교배
+        for i in range(cut_location):
+            new_genome.W2[i], other_genome.W2[i] = other_genome.W2[i], new_genome.W2[i]
 
         cut_location = int(len(new_genome.W3) * random.uniform(0, 1))  # W3 교배
         for i in range(cut_location):
@@ -57,8 +60,8 @@ class Generation():
 
     def mutate_weights(self, weights):
         # print(weights)
-        # chance_of_mutation = 0.1 랜덤으로 뽑은 확률이 0.1보다 작으면
         if random.uniform(0, 1) < self.chance_of_mutation:
+            print("Mutagenesis!")
             # 돌연변이 생성 (이상한 값)
             return weights * (random.uniform(0, 1) - 0.5) * 3 + (random.uniform(0, 1) - 0.5)
         else:
@@ -67,6 +70,6 @@ class Generation():
     def mutate(self, genome):  # 돌연변이
         new_genome = copy.deepcopy(genome)  # 교배를 끝난 유전자를 가져온다.
         new_genome.W1 += self.mutate_weights(new_genome.W1)
-        # new_genome.W2 += self.mutate_weights(new_genome.W2)
+        new_genome.W2 += self.mutate_weights(new_genome.W2)
         new_genome.W3 += self.mutate_weights(new_genome.W3)
         return new_genome
