@@ -6,6 +6,7 @@ class Player() :
         self.py = (HEIGHT - PLAYER_SIZE) / 2
         self.pos = [self.px, self.py] # player 초기 위치는 화면 가운데로 설정
         self.input = []
+        self.list = []
         self.score = 0
         self.dead = False
         
