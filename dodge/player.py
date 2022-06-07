@@ -6,26 +6,27 @@ class Player() :
         self.py = (HEIGHT - PLAYER_SIZE) / 2
         self.pre_pos = [self.px, self.py]
         self.pos = [self.px, self.py] # player 초기 위치는 화면 가운데로 설정
-        self.input = []
+        self.input = [0 for i in range(8)] # 적과의 충돌을 감지하여서, 충돌하는 경우 1 로 채워넣을 것임
         self.list = []
         self.score = 0
         self.dead = False
         
     def get_inputs(self) : # 지금 껏 계산된 player input 을 반환
+        print(self.input)
         return self.input # Input Layer 입력값
     
     def limit_x(self, px) : # x 좌표가 유효한 값인지 검사
-        if (px <= 30) :
-            px = 30
-        elif (px >= WIDTH - PLAYER_SIZE - 30) :
-            px = WIDTH - PLAYER_SIZE - 30
+        if (px <= 0) :
+            px = 0
+        elif (px >= WIDTH - PLAYER_SIZE) :
+            px = WIDTH - PLAYER_SIZE
         return px
         
     def limit_y(self, py) : # y 좌표가 유효한 값인지 검사
-        if (py >= HEIGHT - PLAYER_SIZE - 30) :
-            py = HEIGHT - PLAYER_SIZE - 30
-        elif (py <= 30) :
-            py = 30
+        if (py >= HEIGHT - PLAYER_SIZE) :
+            py = HEIGHT - PLAYER_SIZE
+        elif (py <= 0) :
+            py = 0
         return py
     
     def move_up(self) : # 방향키 위 동작

@@ -5,6 +5,10 @@ HEIGHT = 600
 PLAYER_SIZE = 10
 MOVE_SPEED = 5
 
+# Player move list
+PLAYER_DX = [0, 0, -1, 1, -1, 1, -1, 1]
+PLAYER_DY = [-1, 1, 0, 0, -1, -1, 1, 1]
+
 # Defining the color for player and enemy
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)

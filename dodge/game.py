@@ -11,6 +11,16 @@ from enemy import Enemy
 from player import Player
 from generation import Generation
 
+class Dummy_Enemy : # 일단, detect collision 에다가 입력으로 넘겨야 하기 때문에 일단 dummy 로 만들자. (나중에 잘 되면 수정해도 괜찮을 듯)
+    def __init__(self, px, py) :
+        self.px = px
+        self.py = py
+
+class Dummy_Player : # 위와 동일
+    def __init__(self, px, py) :
+        self.px = px
+        self.py = py
+
 class Game() :
     def __init__(self) :
         pygame.init()  # To initialize pygame
@@ -58,17 +68,40 @@ class Game() :
                 self.score += 1 # score 점수 증가
             else :
                 # print("(%d, %d)" %(enemy.px, enemy.py))
-                for player in self.players :
-                    if (player.dead != True) : # Player가 이미 죽은 경우 넘어간다.
-                        x_d, y_d, distance = self.calc_distance(enemy, player)
-                        if (distance < 100) :
-                            player.list.append([distance, x_d, y_d, enemy.x_speed, enemy.y_speed, player.px, player.py])  
-        
-        for player in self.players :
-            if player.dead != True :
-                if len(player.list) :
-                    player.list.sort(key = lambda x: x[0])
-                    player.input = player.list[0][1:7] # 상대좌표, 적 방향벡터, 플레이어 위치 
+                # for player in self.players :
+                #     if (player.dead != True) : # Player가 이미 죽은 경우 넘어간다.
+                #         x_d, y_d, distance = self.calc_distance(enemy, player)
+                #         if (distance < 100) :
+                #             player.list.append([distance, x_d, y_d, enemy.x_speed, enemy.y_speed, player.px, player.py])  
+
+                # 상대방도 이미 움직인 상태이다, 그렇기 때문에, 여기서 한번 더 나아가서, 상대방의 enemy.py, enemy.px 를 변경해주고
+                # 그 다음에 player 도 8 방향으로 움직여보면서, 충돌하는지 안하는지를 체크해주어야 한다.
+                # 그러려면 collision_check 가 필요하다.
+                # 근데 이미 detect collision 이 있기 때문에, 이것을 받고, detect collision 반환 값이 true = 충돌, false = 충돌 x 라는 것을 유의하여 코딩하자.
+                # 그러면 이제 유의 해야 할 부분은 하나이다.
+                # 그냥 빠르게 진행하기 위해서, 1이면 진행하지 않던가, 아니면 0으로 바꾸는 구문은 없앤다.
+                # 즉 충돌하지 않는다라면? 내가 움직였을 때, 상대방이 움직였을 때, 충돌하지 않는다면 변경하지 않는다.
+                for player in self.players :    
+                    enemy_ny = enemy.py + (enemy.y_speed * ENEMY_SPEED)
+                    enemy_nx = enemy.px + (enemy.x_speed * ENEMY_SPEED) # 적의 위치를 한칸 더 움직여주고, 실질적으로 움직이지 않기 위해서 enemy_nx, ny 를 만들어서 처리
+                    
+                    dummy_enemy = Dummy_Enemy(enemy_nx, enemy_ny)
+                    # 이제 player 를 8방향으로 움직여서 충돌하는 지 안하는지 확인을 할 차례이다.
+                    # 근데 일단은, 적과의 충돌만 감지해보고, 된 다음에 이후에 벽과의 충돌도 감지해보자.
+                    for i in range(8) : # 8방향으로 움직여보고, detect_end_in_deadlock, detect_collision 둘다 해보고, 둘 중 하나라도 true 가 존재한다라면, 바꿔주지 않는다.
+                        player_ny = player.py + (PLAYER_DY[i] * MOVE_SPEED)
+                        player_nx = player.px + (PLAYER_DX[i] * MOVE_SPEED)
+                        
+                        dummy_player = Dummy_Player(player_nx, player_ny)
+                        
+                        if (self.detect_end_in_deadlock(dummy_player) or self.detect_collision(dummy_player, dummy_enemy)) : # 박는 경우
+                            player.input[i] = 1 # 박는 경우에는 1을 넣어준다 그렇지 않은 경우는 0이다.
+    
+        # for player in self.players :
+        #     if player.dead != True :
+        #         if len(player.list) :
+        #             player.list.sort(key = lambda x: x[0])
+        #             player.input = player.list[0][1:7] # 상대좌표, 적 방향벡터, 플레이어 위치 
     
     def calc_distance(self, enemy, player) :
         x_d = player.px - enemy.px
@@ -80,6 +113,17 @@ class Game() :
         for enemy in self.enemylist :
             if self.detect_collision(self.players[idx], enemy) : # 충돌 검사
                 return True
+
+        return False
+
+    def detect_end_in_deadlock(self, player) : # 실질적인 사이즈를 고려하여, 벽에 부딪혀서 더 이상 움직이지 못하는지를 파악해야함, 벽에 부딪히는 경우도 계산하자.
+        wall_list = [0, HEIGHT - PLAYER_SIZE, 0, WIDTH - PLAYER_SIZE] # 위, 아래, 왼쪽, 오른쪽 Player size 를 고려하여서 벽에 부딪히는지 안부딪히는지 계산하기 위함이다.
+        p_x = player.px
+        p_y = player.py
+
+        if p_y < wall_list[0] or p_y > wall_list[1] or p_x < wall_list[2] or p_x > wall_list[3]:
+            return True
+
         return False
 
     def detect_collision(self, player, enemy) :
@@ -141,6 +185,7 @@ class Game() :
                 # print(self.players[i].get_inputs())
                 if (self.players[i].get_inputs()) :
                     output = self.genomes[i].decisionOutput(self.players[i].get_inputs()) # 신경망 계산
+                    self.players[i].input = [0 for i in range(8)]
                     self.players[i].list = []
                     self.move(i, output) # Player Move
                 if self.collision_check(i) : # 충돌 검사

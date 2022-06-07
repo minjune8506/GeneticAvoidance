@@ -5,7 +5,7 @@ class Network() :
     self.fitness = 0 # 적합도
     hidden_layer1 = 8 # hidden layer 노드 갯수
     hidden_layer2 = 4 # hidden layer 노드 갯수
-    self.W1 = np.random.randn(6, hidden_layer1)
+    self.W1 = np.random.randn(8, hidden_layer1)
     self.W2 = np.random.randn(hidden_layer1, hidden_layer2)
     self.W3 = np.random.randn(hidden_layer2, 1) # w 값들을 무작위로 지정
     
