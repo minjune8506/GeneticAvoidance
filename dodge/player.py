@@ -6,14 +6,13 @@ class Player() :
         self.py = (HEIGHT - PLAYER_SIZE) / 2
         self.pre_pos = [self.px, self.py]
         self.pos = [self.px, self.py] # player 초기 위치는 화면 가운데로 설정
-        self.pre_distance = 0
-        self.distance = [0, 0, 0, 0, 0] # 가장 가까운 장애물과의 거리, x_speed, y_speed, 적과의 방향, 벽이랑 가까워지는지 멀어지는지
+        self.input = []
+        self.list = []
         self.score = 0
         self.dead = False
         
     def get_inputs(self) : # 지금 껏 계산된 player input 을 반환
-        # print(self.distance)
-        return self.distance # Input Layer 입력값
+        return self.input # Input Layer 입력값
     
     def limit_x(self, px) : # x 좌표가 유효한 값인지 검사
         if (px <= 30) :
