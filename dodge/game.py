@@ -44,10 +44,10 @@ class Game() :
         for idx, enemy in enumerate(self.enemylist) :
             x_move = False
             y_move = False
-            if (0 <= enemy.px + enemy.x_speed * ENEMY_SPEED <= WIDTH) : # enemy가 화면 안에 있는지 검사
+            if (-20 <= enemy.px + enemy.x_speed * ENEMY_SPEED <= WIDTH + 20) : # enemy가 화면 안에 있는지 검사
                 enemy.px += enemy.x_speed * ENEMY_SPEED
                 x_move = True
-            if (0 <= enemy.py + enemy.y_speed * ENEMY_SPEED <= HEIGHT) :
+            if (-20 <= enemy.py + enemy.y_speed * ENEMY_SPEED <= HEIGHT + 20) :
                 enemy.py += enemy.y_speed * ENEMY_SPEED
                 y_move = True
 
@@ -57,34 +57,22 @@ class Game() :
             else :
                 # print("(%d, %d)" %(enemy.px, enemy.py))
                 for player in self.players :
-                    if (player.dead == True) : # Player가 이미 죽은 경우 넘어간다.
-                        continue
-                    x_d, y_d = self.cal_real_distance(enemy, player)
-                    distance = sqrt(pow(x_d, 2) + pow(y_d, 2)) # player와 enemy 거리 계산
-                    # player.distance = [min(player.distance[0], distance), enemy.x_speed, enemy.y_speed]
-                    if (min(player.distance[0], distance) == player.distance[0]) :
-                        player.distance = player.distance
-                    else :
-                        player.distance = [distance, enemy.x_speed, enemy.y_speed]
-                # print("distance : " + str(self.players[0].distance))
+                    if (player.dead != True) : # Player가 이미 죽은 경우 넘어간다.
+                        x_d, y_d, distance = self.calc_distance(enemy, player)
+                        if (distance < 100) :
+                            player.list.append([distance, x_d, y_d, enemy.x_speed, enemy.y_speed, player.px, player.py])  
+        
+        for player in self.players :
+            if player.dead != True :
+                if len(player.list) :
+                    player.list.sort(key = lambda x: x[0])
+                    player.input = player.list[0][1:7] # 상대좌표, 적 방향벡터, 플레이어 위치 
     
-    def cal_real_distance(self, enemy, player) :
-        x_d = 0
-        y_d = 0
-        p_x = player.pos[0]
-        p_y = player.pos[1]
-
-        if enemy.px + ENEMY_SIZE < p_x : # 왼쪽에 있으면
-            x_d = p_x - (enemy.px + ENEMY_SIZE)
-        elif p_x + PLAYER_SIZE < enemy.px : # 오른쪽에 있으면
-            x_d = enemy.px - (p_x + PLAYER_SIZE)
-
-        if enemy.py + ENEMY_SIZE < p_y : # 위에 있으면
-            y_d = p_y - (enemy.py + ENEMY_SIZE)
-        elif p_y + PLAYER_SIZE < enemy.py : # 아래에 있으면
-            y_d = enemy.py - (p_y + PLAYER_SIZE)        
-
-        return x_d, y_d
+    def calc_distance(self, enemy, player) :
+        x_d = player.px - enemy.px
+        y_d = player.py - enemy.py
+        distance = sqrt(pow(x_d, 2) + pow(y_d, 2)) # player와 enemy 거리 계산
+        return x_d, y_d, distance
 
     def collision_check(self, idx) : # player와 enemy가 충돌했는지 검사
         for enemy in self.enemylist :
@@ -103,27 +91,14 @@ class Game() :
         return False  # False is returned only when the above if statements do not get run.
     
     def move(self, idx, output) : # 신경망 결과 값으로 방향 조정
-        max_val = max(output)
-        if max_val == output[UP] : # Up
-            self.players[idx].move_up()
-        elif max_val == output[DOWN] : # Down
-            self.players[idx].move_down()
-        elif max_val == output[LEFT] : # Left
-            self.players[idx].move_left()
-        elif max_val == output[RIGHT] : # Right
-            self.players[idx].move_right()
-        elif max_val == output[UPLEFT] :
-            self.players[idx].move_up()
-            self.players[idx].move_left()
-        elif max_val == output[UPRIGHT] :
-            self.players[idx].move_up()
-            self.players[idx].move_right()
-        elif max_val == output[DOWNLEFT] :
-            self.players[idx].move_down()
-            self.players[idx].move_left()
-        elif max_val == output[DOWNRIGHT] :
-            self.players[idx].move_down()
-            self.players[idx].move_right()
+        angle = output * 360
+        # print(int(angle)) # output 각도 출력
+        x = MOVE_SPEED * sin(angle)
+        y = MOVE_SPEED * cos(angle)
+        self.players[idx].px += x
+        self.players[idx].px = self.players[idx].limit_x(self.players[idx].px)
+        self.players[idx].py += y
+        self.players[idx].py = self.players[idx].limit_y(self.players[idx].py)
     
     def prepare(self) :
         self.score = 0 # score
@@ -133,6 +108,7 @@ class Game() :
         self.genomes = copy.deepcopy(self.generation.genomes) # generation의 유전자 값 복사
         self.enemylist = [] # 적들의 리스트
         self.enemyMax = 30 # 최대 적 갯수
+        self.is_live = self.generation.population
     
     def print_end_msg(self) : # 게임이 끝나지 않고 진행되므로 안써도 되는 메소드
         final_score = "Final Score: " + str(self.score)
@@ -159,18 +135,23 @@ class Game() :
             for i in range(self.generation.population) :
                 if self.players[i].dead == True : # 이미 죽었으면 넘어간다.
                     continue
-                output = self.genomes[i].decisionOutput(self.players[i].get_inputs()) # 신경망 계산
-                self.move(i, output) # Player Move
+                # print(self.players[i].get_inputs())
+                if (self.players[i].get_inputs()) :
+                    output = self.genomes[i].decisionOutput(self.players[i].get_inputs()) # 신경망 계산
+                    self.players[i].list = []
+                    self.move(i, output) # Player Move
                 if self.collision_check(i) : # 충돌 검사
                     self.players[i].dead = True # dead
+                    self.is_live -= 1
                     self.genomes[i].fitness = self.score # 적합도 설정
-            
-            for player in self.players :
-                player.distance = [1000000, 0, 0]
             
             scoreText = "Score:" + str(self.score)  # Score 갱신
             scoreLabel = self.myFont.render(scoreText, 1, YELLOW)
             self.screen.blit(scoreLabel, (WIDTH - scoreLabel.get_width(), 0)) # Screen에 Label 추가
+            
+            isLiveText = "Player:" + str(self.is_live)
+            liveLabel = self.myFont.render(isLiveText, 1, YELLOW)
+            self.screen.blit(liveLabel, (0, 0)) # 플레이어 얼마나 살아있는지 정보 표시
             
             self.draw_enemies() # enemy들을 화면에 그린다
             for player in self.players :
@@ -196,10 +177,8 @@ class Game() :
                 self.generation.keep_best_genomes() # 적합도가 높은 유전자 보존
                 self.generation.mutations() # 유전자 교배
                 time.sleep(1)
-                break
-        
         plt.plot(np.array(list(range(self.gen + 1))),
-                 np.array(self.scores)) # 그래프 값 추가
+			np.array(self.scores)) # 그래프 값 추가
         plt.draw()
         self.gen += 1
         self.play() # Play Again
