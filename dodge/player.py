@@ -11,7 +11,7 @@ class Player() :
         self.score = 0
         self.dead = False
         
-    def get_inputs(self) : # 지금 껏 계산된 player input 을 반환
+    def get_inputs(self) : # 지금 껏 계산된 player input 을 반환        
         print(self.input)
         return self.input # Input Layer 입력값
     
