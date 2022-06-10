@@ -4,13 +4,15 @@ class Player() :
     def __init__(self) :
         self.px = (WIDTH - PLAYER_SIZE) / 2
         self.py = (HEIGHT - PLAYER_SIZE) / 2
+        self.pre_pos = [self.px, self.py]
         self.pos = [self.px, self.py] # player 초기 위치는 화면 가운데로 설정
-        self.input = []
+        self.input = [0 for i in range(8)] # 적과의 충돌을 감지하여서, 충돌하는 경우 1 로 채워넣을 것임
         self.list = []
         self.score = 0
         self.dead = False
         
-    def get_inputs(self) : # 지금 껏 계산된 player input 을 반환
+    def get_inputs(self) : # 지금 껏 계산된 player input 을 반환        
+        print(self.input)
         return self.input # Input Layer 입력값
     
     def limit_x(self, px) : # x 좌표가 유효한 값인지 검사
@@ -46,4 +48,3 @@ class Player() :
         self.px -= MOVE_SPEED
         self.px = self.limit_x(self.px)
         self.pos = [self.px, self.py]
-    
