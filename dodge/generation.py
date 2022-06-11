@@ -3,7 +3,7 @@ import copy
 from network import Network
 
 class Generation():
-    def __init__(self):
+    def __init__(self): # 세대 초기화
         self.population = 50  # 한 세대에 Player 50명
         self.keep_best = 10  # 몇개를 살릴건지?
         self.genomes = self.set_initial_genomes() # 유전자 초기화
@@ -15,7 +15,7 @@ class Generation():
             genomes.append(Network())  # 신경망 객체 생성
         return genomes  # 50개 초기 신경망 셋팅 후 리턴
 
-    def set_genomes(self, genomes):
+    def set_genomes(self, genomes): # genome input 값으로 갱신
         self.genomes = genomes
 
     def keep_best_genomes(self):  # 적합도가 가장 잘 나온 10마리를 살린다.
@@ -58,7 +58,7 @@ class Generation():
             new_genome.W3[i], other_genome.W3[i] = other_genome.W3[i], new_genome.W3[i]
         return new_genome
 
-    def mutate_weights(self, weights):
+    def mutate_weights(self, weights): # 돌연변이 생성
         # print(weights)
         if random.uniform(0, 1) < self.chance_of_mutation:
             print("Mutagenesis!")
@@ -67,7 +67,7 @@ class Generation():
         else:
             return 0
 
-    def mutate(self, genome):  # 돌연변이
+    def mutate(self, genome):  # 돌연변이 적용
         new_genome = copy.deepcopy(genome)  # 교배를 끝난 유전자를 가져온다.
         new_genome.W1 += self.mutate_weights(new_genome.W1)
         new_genome.W2 += self.mutate_weights(new_genome.W2)
