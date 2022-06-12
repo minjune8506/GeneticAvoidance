@@ -6,7 +6,7 @@ Avoid enemies using genetic algorithm and neural network.
 
 **Neural Network**
 - Inputs : [Enemy's relative distance, Enemy's direction vector]
-- Construction : ? * ? * ?
+- Construction : 4 * 6 * 6 * 8
 - Outputs : Directions that player Can Move (Up, Down, Left, Right, Diagonals)
 - Activation Function : Softmax
 
