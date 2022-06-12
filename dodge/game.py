@@ -1,3 +1,4 @@
+from this import d
 from matplotlib import pyplot as plt
 import numpy as np
 import pygame
@@ -9,6 +10,16 @@ from helpers import *
 from enemy import Enemy
 from player import Player
 from generation import Generation
+
+class Dummy_Enemy : # 일단, detect collision 에다가 입력으로 넘겨야 하기 때문에 일단 dummy 로 만들자. (나중에 잘 되면 수정해도 괜찮을 듯)
+    def __init__(self, px, py) :
+        self.px = px
+        self.py = py
+
+class Dummy_Player : # 위와 동일
+    def __init__(self, px, py) :
+        self.px = px
+        self.py = py
 
 class Game() :
     def __init__(self) : # 초기화
@@ -89,6 +100,17 @@ class Game() :
         for enemy in self.enemylist :
             if self.detect_collision(self.players[idx], enemy) : # 충돌 검사
                 return True
+
+        return False
+
+    def detect_end_in_deadlock(self, player) : # 실질적인 사이즈를 고려하여, 벽에 부딪혀서 더 이상 움직이지 못하는지를 파악해야함, 벽에 부딪히는 경우도 계산하자.
+        wall_list = [0, HEIGHT - PLAYER_SIZE, 0, WIDTH - PLAYER_SIZE] # 위, 아래, 왼쪽, 오른쪽 Player size 를 고려하여서 벽에 부딪히는지 안부딪히는지 계산하기 위함이다.
+        p_x = player.px
+        p_y = player.py
+
+        if p_y < wall_list[0] or p_y > wall_list[1] or p_x < wall_list[2] or p_x > wall_list[3]:
+            return True
+
         return False
 
     def detect_collision(self, player, enemy) : # enemy 와 player 가 충돌하는지를 판별
@@ -128,6 +150,7 @@ class Game() :
         self.players = [] # Player 보관 리스트
         for i in range (self.generation.population) :
             self.players.append(Player()) # 세대의 인구 수만큼 플레이어 생성
+            self.genomes[i].fitness = 0 # 새로 시작할 때마다, genome fitness 수정
         self.genomes = copy.deepcopy(self.generation.genomes) # generation의 유전자 값 복사
         self.enemylist = [] # 적들의 리스트
         self.enemyMax = 30 # 최대 적 갯수
@@ -167,7 +190,7 @@ class Game() :
                     self.players[i].dead = True # dead
                     self.is_live -= 1
                     self.genomes[i].fitness = self.score # 적합도 설정
-            
+        
             scoreText = "Score:" + str(self.score)  # Score 갱신
             scoreLabel = self.myFont.render(scoreText, 1, YELLOW)
             self.screen.blit(scoreLabel, (WIDTH - scoreLabel.get_width(), 0)) # Screen에 Label 추가
@@ -193,11 +216,12 @@ class Game() :
                     game_over = False
 
             if game_over : # Game Over
-                self.scores.append(self.score)
+                self.scores.append(self.score)            
                 print("---------Generation %d Ends---------" %self.gen)
                 print("Max Score : %d" %self.score)
-                self.generation.genomes = copy.deepcopy(self.genomes)
+                self.generation.genomes = copy.deepcopy(self.genomes)            
                 self.generation.keep_best_genomes() # 적합도가 높은 유전자 보존
+                self.fitness_list.append(self.generation.genomes[0].fitness) # keep_best_genomes 에서 정렬을 해주니까 여기서 넣어줌
                 self.generation.mutations() # 유전자 교배
                 time.sleep(1)
         plt.plot(np.array(list(range(self.gen + 1))),
@@ -210,7 +234,7 @@ class Game() :
 fig = plt.figure(figsize=(6,4))
 ax = fig.add_subplot(1,1,1)
 ax.set_title("Dodge game")
-ax.set(xlabel = 'Generation', ylabel='Score')
+ax.set(xlabel = 'Generation', ylabel='Fitness')
 plt.show(block = False)
 
 game = Game() # Game 객체 생성
