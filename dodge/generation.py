@@ -7,7 +7,7 @@ class Generation():
         self.population = 50  # 한 세대에 Player 50명
         self.keep_best = 10  # 몇개를 살릴건지?
         self.genomes = self.set_initial_genomes() # 유전자 초기화
-        self.chance_of_mutation = 0.4  # 돌연변이 확률
+        self.chance_of_mutation = 0.05  # 돌연변이 확률
 
     def set_initial_genomes(self):  # 0세대 유전자들 초기값 설정
         genomes = []
