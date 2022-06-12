@@ -63,21 +63,27 @@ class Game() :
 
     def append_player_list(self, enemy, player) : # enemy, player 의 정보를 이용하여, 가장 가까운 장애물을 골라냄
         if (player.dead != True) : # Player가 이미 죽은 경우 넘어간다.
-            x_d, y_d, distance = self.cal_distance(enemy, player)
+            distance = self.cal_distance(enemy, player)
+            relative_x_d, relative_y_d = self.relative_position(enemy, player)
             if (distance < 100) :
-                player.list.append([distance, x_d, y_d, enemy.x_speed, enemy.y_speed, player.px, player.py])
+                if distance < player.input[0] : # 현재 distance 가 더 낮은 경우에만 집어넣는다, 그렇지 않으면 그냥 넣지 않으니 무시
+                    player.input = [distance, relative_x_d, relative_y_d, enemy.x_speed, enemy.y_speed]                
+
+    def relative_position(self, enemy, player) : # 적과의 상대적 거리를 반환    
+        relative_x_d = player.px - enemy.px
+        relative_y_d = player.py - enemy.py
+        
+        return relative_x_d, relative_y_d
 
     def cal_distance(self, enemy, player) : # player 와 enemy 와의 거리를 계산
         x_d = player.px - enemy.px
         y_d = player.py - enemy.py
         distance = sqrt(pow(x_d, 2) + pow(y_d, 2)) # player와 enemy 거리 계산
-        return x_d, y_d, distance
+        return distance
 
     def pull_input(self, player) : # 계산해놓은 player list 를 가지고 가장 가까운 적을 뽑아냄
-        if player.dead != True :
-            if len(player.list) :
-                player.list.sort(key = lambda x: x[0])
-                player.input = player.list[0][1:7] # 상대좌표, 적 방향벡터, 플레이어 위치
+        if player.dead != True :        
+            player.input = player.input[1:5]
 
     def collision_check(self, idx) : # player와 enemy가 충돌했는지 검사
         for enemy in self.enemylist :
@@ -152,11 +158,11 @@ class Game() :
             for i in range(self.generation.population) :
                 if self.players[i].dead == True : # 이미 죽었으면 넘어간다.
                     continue
-                # print(self.players[i].get_inputs())
-                if (self.players[i].get_inputs()) :
+                player_input = self.players[i].get_inputs()
+                if not (player_input[0] == 0 and player_input[1] == 0) : # 처음에 적을 감지하지 못하였는데, 움직이는 현상을 해결
                     output = np.argmax(self.genomes[i].decisionOutput(self.players[i].get_inputs())) # 신경망 계산
-                    self.players[i].list = []
-                    self.move(i, output) # Player Move
+                    self.move(i, output) # Player Move            
+                self.players[i].input = [INIT_DISTANCE, 0, 0, 0, 0]
                 if self.collision_check(i) : # 충돌 검사
                     self.players[i].dead = True # dead
                     self.is_live -= 1
@@ -177,7 +183,7 @@ class Game() :
                 # 안죽은 플레이어만 화면에 그린다.
                 pygame.draw.rect(self.screen, RED, (player.px, player.py, PLAYER_SIZE, PLAYER_SIZE))
             
-            self.clock.tick(60) # 60 Frame
+            self.clock.tick(60) # 120 Frame
             pygame.display.update() # screen update
             
             # Player가 모두 죽었는지 확인

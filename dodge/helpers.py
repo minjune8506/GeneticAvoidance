@@ -4,6 +4,7 @@ HEIGHT = 600
 
 PLAYER_SIZE = 10
 MOVE_SPEED = 5
+INIT_DISTANCE = 10000
 
 # Defining the color for player and enemy
 RED = (255, 0, 0)
