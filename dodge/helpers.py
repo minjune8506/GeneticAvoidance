@@ -4,6 +4,7 @@ HEIGHT = 600
 
 PLAYER_SIZE = 10
 MOVE_SPEED = 5
+INIT_DISTANCE = 10000
 
 # Player move list
 PLAYER_DX = [0, 0, -1, 1, -1, 1, -1, 1]
